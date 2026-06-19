@@ -102,11 +102,12 @@ Detalle de capas del DS y flujo de datos: **SAD §4 y §6**.
 > Mantener esta sección como el "dónde estamos". Actualizar al cerrar cada fase.
 
 - **Fase 0 — Cimientos:** ✅ **cerrada y auditada** (2026-06-18). Monorepo pnpm+Turborepo, TS estricto, ESLint con regla `ds ✗→ app` (verificada en vivo), pipeline de tokens 3 niveles + theming dark/light, primitives Box/Stack/Text/Icon, `useTheme`, app SPA consumiendo el DS, CI + Changesets. Verificaciones en verde (typecheck/lint/test/build, JS app 38.7 kB gzip). Detalle y deuda aceptada en [AUDIT.md](AUDIT.md).
-- **Fase 1 — Núcleo del DS:** 🚧 en curso, por slices.
-  - **Slice 1 ✅ (2026-06-18):** Button, Input, Modal (sobre Reka UI) + Storybook 8 (addon-a11y + toolbar de tema) + cobertura con umbral. **Patrón de alta de componente fijado y validado** (ver AUDIT.md → Fase 1 / Slice 1). Reka UI ejercido por primera vez (Modal valida ADR-008).
-  - **Slice 2 ⬜ siguiente:** Select, Checkbox/Radio, Toast, Tabs — en serie con el mismo patrón.
-  - **Comandos nuevos:** `pnpm -C packages/ds storybook` (dev, :6006), `pnpm -C packages/ds build-storybook`. Patrón de componente: `packages/ds/src/components/<Name>/` con `.vue` + `.stories.ts` + `.test.ts`, export en `index.ts`.
-- **Fase 2 — Patrones + app:** ⬜ pendiente.
+- **Fase 1 — Núcleo del DS:** ✅ **cerrada (2026-06-19)**, en 2 slices.
+  - **Slice 1:** Button, Input, Modal + Storybook 8 (addon-a11y + toolbar de tema) + cobertura con umbral. Patrón de alta de componente fijado.
+  - **Slice 2:** Checkbox, RadioGroup, Select, Tabs, Toast (useToast). Todos sobre Reka UI.
+  - **Componentes del DS:** Button, Input, Modal, Checkbox, RadioGroup, Select, Tabs, ToastProvider · primitives Box/Stack/Text/Icon · composables useTheme/useToast. Tests 46/46, cobertura 99.7% líneas/80% branches. Ver AUDIT.md → Fase 1.
+  - **Comandos:** `pnpm -C packages/ds storybook` (dev, :6006), `pnpm -C packages/ds build-storybook`. Patrón de componente: `packages/ds/src/components/<Name>/` con `.vue` + `.stories.ts` + `.test.ts`, export en `index.ts`. Los componentes interactivos se montan sobre Reka UI (verificar el prop de modelo en su `.d.ts`); en tests usar `findBy*` (Presence/portales).
+- **Fase 2 — Patrones + app:** ⬜ siguiente. DataTable (TanStack Table), Form (vee-validate + Zod), PageHeader; pantallas de la app (login, listado, detalle) con MSW.
 - **Fase 3 — Endurecimiento:** ⬜ pendiente.
 
 Detalle del roadmap: **SAD §12**. Resultado de cada fase: **[AUDIT.md](AUDIT.md)**.

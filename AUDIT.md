@@ -75,7 +75,7 @@
 
 ## Fase 1 — Núcleo del DS
 
-🚧 **En curso.** Entrega por slices para validar el patrón de "alta de componente" antes de producir en serie.
+✅ **Cerrada (2026-06-19).** Entregada por slices: Slice 1 fijó el patrón de "alta de componente"; Slice 2 lo produjo en serie. Núcleo completo: Button, Input, Modal, Checkbox, RadioGroup, Select, Tabs, Toast (+ primitives de Fase 0) y composables useTheme/useToast.
 
 ### Slice 1 — Patrón de alta de componente (Button · Input · Modal)
 
@@ -122,6 +122,44 @@
 - Cobertura de branches al 75.9%: por guardas defensivas `typeof window/localStorage` en `useTheme` (entorno-dependientes, difíciles de cubrir sin mocks de entorno). Aceptable sobre el umbral de 70.
 
 **Veredicto:** ✅ **Patrón aprobado.** Listo para producir Select/Checkbox/Radio/Toast/Tabs siguiendo el mismo molde.
+
+### Slice 2 — Producción en serie (Checkbox · RadioGroup · Select · Tabs · Toast)
+
+**Estado:** ✅ auditado · **Fecha:** 2026-06-19.
+
+**Entregado** (todos sobre Reka UI, mismo patrón del Slice 1):
+
+- **Checkbox**: `CheckboxRoot/Indicator`, label asociado vía `<label for>` (el botón de Reka es labelable). 5 tests incl. axe.
+- **RadioGroup**: `RadioGroupRoot/Item`, opciones por prop, `aria-label` de grupo, roving tabindex de Reka. 4 tests incl. axe.
+- **Select**: `Select*` completo (trigger/value/portal/content/viewport/item), type-ahead y posicionamiento de Reka. 4 tests incl. axe (abre y selecciona).
+- **Tabs**: `Tabs*`, contenido por slots nombrados = `value`, roles tablist/tab/tabpanel. 3 tests incl. axe.
+- **Toast**: composable `useToast` (cola de UI, no estado de negocio — ADR-004) + `ToastProvider` sobre Reka Toast (live region, timers, foco). 3 tests incl. axe. Variantes info/success/danger.
+- Stories CSF3 con autodocs para los 5; export en `index.ts` (+ tipos `RadioOption`, `SelectOption`, `TabItem`, `ToastItem/Options/Variant`).
+- Polyfills de jsdom en el setup de tests (ResizeObserver, scrollIntoView, pointer capture) para que los componentes Reka monten en el entorno de test.
+
+**Verificaciones:**
+
+| Check             | Resultado                                                              |
+| ----------------- | ---------------------------------------------------------------------- |
+| `pnpm typecheck`  | ✅ 4/4 (incluye re-export de tipos desde SFCs)                         |
+| `pnpm lint`       | ✅ 3/3, 0/0                                                            |
+| `pnpm test`       | ✅ DS **46/46** · cobertura **99.7% líneas / 80% branches** (> umbral) |
+| `pnpm build`      | ✅ ds + app                                                            |
+| `build-storybook` | ✅ compila las 8 stories                                               |
+
+**Hallazgos y correcciones:**
+
+1. **Reka `CheckboxRoot` usa `modelValue`, no `checked`** (API distinta de Radix Vue antiguo). Corregido. Registrado en TROUBLESHOOTING → lección: verificar el prop de modelo en el `.d.ts` antes de cablear.
+2. **`SelectValue` no muestra el label de un valor preseleccionado hasta abrir** (los items viven en el portal). El test se ajustó a abrir y verificar `option[selected]`. Registrado.
+3. **ESLint flat no respeta `.gitignore`**: linteaba `storybook-static/` (~19.6k falsos errores). Añadido a `ignores`. Registrado.
+
+**Deuda aceptada:**
+
+- Toast: sin animación de salida (se quita de la cola al cerrar). Suficiente para el DS; pulido visual menor, no de a11y.
+- Cobertura de branches en `useTheme` (50%): guardas de entorno (`typeof window`) difíciles de cubrir sin mocks; el total (80%) supera el umbral.
+- Visual regression (Chromatic/test-runner) sigue pendiente para Fase 3; Storybook ya es la base.
+
+**Veredicto:** ✅ **Aprobado.** Núcleo del DS completo (10 componentes/primitives + 2 composables). **Fase 1 cerrada.** Listo para Fase 2 (patrones DataTable/Form + pantallas de la app).
 
 ## Fase 2 — Patrones + app
 

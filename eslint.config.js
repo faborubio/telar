@@ -13,6 +13,7 @@ export default tseslint.config(
       '**/node_modules/**',
       '**/.turbo/**',
       '**/coverage/**',
+      '**/storybook-static/**',
       'packages/ds/src/tokens/generated/**',
     ],
   },

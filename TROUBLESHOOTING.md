@@ -58,6 +58,30 @@
 - Decisión: **se deja el aviso**. Un diálogo con `title` pero sin descripción es válido en ARIA. El sentinel `aria-describedby="undefined"` provocaría una violación **real** de axe (`aria-describedby` apuntando a un id inexistente), que es peor que un warning de dev. Cuando hay `description`, Reka asocia el id correctamente y el aviso no aparece.
 - Prevención: pasar `description` cuando exista contenido descriptivo; el aviso sin descripción es esperado y benigno.
 
+## [2026-06-19] Reka CheckboxRoot usa `modelValue`, no `checked`
+
+- Contexto: `Checkbox` sobre Reka; los tests de marcado fallaban (no emitía, aria-checked siempre false).
+- Síntoma: `:checked`/`@update:checked` no controlaban el estado; `aria-checked` quedaba en `false`.
+- Causa raíz: en Reka UI 2.x, `CheckboxRoot` expone el modelo como **`modelValue`** (v-model) + `update:modelValue`, no `checked` (eso era Radix Vue antiguo).
+- Solución: `:model-value="modelValue"` + `@update:model-value`.
+- Prevención: ante cualquier componente Reka, verificar el nombre real del prop de modelo en su `.d.ts` (`grep "interface XRootProps"`) antes de cablearlo. No asumir la API de Radix.
+
+## [2026-06-19] Select de Reka no muestra el label de un valor preseleccionado hasta abrir
+
+- Contexto: test "refleja el valor seleccionado" del `Select`.
+- Síntoma: con `modelValue` inicial, el trigger mostraba el placeholder, no el label del valor.
+- Causa raíz: `SelectValue` resuelve el texto desde los `SelectItem`, que viven en el portal y **no se montan hasta abrir**. Es comportamiento conocido de Radix/Reka, no un bug.
+- Solución: el test abre el select y verifica la opción con `getByRole('option', { name, selected: true })`. (En la app real, si se requiere mostrar el label sin abrir, hay que pasar el texto a `SelectValue` o renderizarlo manualmente.)
+- Prevención: no asumir que `SelectValue` conoce el label de un valor que el usuario nunca abrió.
+
+## [2026-06-19] ESLint flat config no respeta .gitignore → linteaba storybook-static
+
+- Contexto: `pnpm lint` tras `build-storybook`; ~19.600 errores en archivos con líneas 10000+.
+- Síntoma: miles de `no-unused-expressions`/`no-unused-vars` en archivos que no son fuente.
+- Causa raíz: ESLint flat config **solo ignora lo declarado en `ignores`**, no lee `.gitignore`. La salida compilada `storybook-static/` (JS bundleado) entraba al lint.
+- Solución: añadir `**/storybook-static/**` (y ya estaban `**/dist/**`, etc.) al bloque `ignores` de `eslint.config.js`.
+- Prevención: cualquier carpeta de build/artefactos nueva debe agregarse a `ignores` de ESLint, además de a `.gitignore`.
+
 ---
 
 ## Notas del entorno (gotchas Windows / pnpm / Node)
