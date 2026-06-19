@@ -90,6 +90,14 @@
 - Solución: derivar rutas desde `process.cwd()` (vitest corre con cwd = root del paquete): `resolve(process.cwd(), 'src/components')`.
 - Prevención: en tests que tocan el FS, anclar en `process.cwd()` en lugar de `import.meta.url`.
 
+## [2026-06-19] CI rojo: pnpm 11.8 requiere Node ≥ 22.13 (node:sqlite)
+
+- Contexto: primer run de GitHub Actions; el CI usaba `node-version: 20`.
+- Síntoma: `Error [ERR_UNKNOWN_BUILTIN_MODULE]: No such built-in module: node:sqlite` y `This version of pnpm requires at least Node.js v22.13` en el paso Setup Node (al ejecutar `pnpm store path` para el caché). Todos los jobs fallaban antes de instalar.
+- Causa raíz: `packageManager: pnpm@11.8.0` (fijado por corepack) usa `node:sqlite`, que existe desde Node 22.5+; pnpm 11.8 exige Node ≥ 22.13. En local no se vio porque la máquina tiene Node 24.
+- Solución: `node-version: 22` en los workflows; `engines.node` a `>=22.13`; README actualizado.
+- Prevención: alinear la versión de Node del CI con la que exige el `packageManager`. Si se quiere soportar Node 20, fijar una pnpm más antigua (9/10).
+
 ---
 
 ## Notas del entorno (gotchas Windows / pnpm / Node)

@@ -40,7 +40,7 @@ Un Design System sin un consumidor real es un catálogo de Storybook que nadie e
 
 ## Requisitos
 
-- **Node** ≥ 20 (probado en v24.15).
+- **Node** ≥ 22.13 (lo exige pnpm 11.8; probado en v24.15).
 - **pnpm** (se activa con `corepack enable`).
 
 ## Arranque rápido
