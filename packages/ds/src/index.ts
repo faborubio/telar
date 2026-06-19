@@ -24,6 +24,7 @@ export { default as ToastProvider } from './components/Toast/ToastProvider.vue'
 // ── Patterns ──
 export { default as PageHeader } from './patterns/PageHeader/PageHeader.vue'
 export { default as DataTable } from './patterns/DataTable/DataTable.vue'
+export { default as FormField } from './patterns/FormField/FormField.vue'
 
 // ── Composables ──
 export { useTheme } from './composables/useTheme'

@@ -7,3 +7,19 @@ export async function fetchUsers(): Promise<User[]> {
   if (!res.ok) throw new Error(`No se pudo cargar usuarios (HTTP ${res.status})`)
   return (await res.json()) as User[]
 }
+
+export async function fetchUser(id: string): Promise<User> {
+  const res = await fetch(`/api/users/${id}`)
+  if (!res.ok) throw new Error(`No se encontró el usuario (HTTP ${res.status})`)
+  return (await res.json()) as User
+}
+
+export async function updateUser(id: string, patch: Partial<User>): Promise<User> {
+  const res = await fetch(`/api/users/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch),
+  })
+  if (!res.ok) throw new Error(`No se pudo guardar (HTTP ${res.status})`)
+  return (await res.json()) as User
+}

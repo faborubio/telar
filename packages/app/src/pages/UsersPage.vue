@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { h, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
+import { RouterLink } from 'vue-router'
 import { PageHeader, DataTable, Button, Stack } from '@telar/ds'
 import type { ColumnDef } from '@tanstack/vue-table'
 import { useUsersStore } from '../stores/users'
@@ -19,6 +20,13 @@ const columns: ColumnDef<User>[] = [
     accessorKey: 'createdAt',
     header: 'Alta',
     cell: (info) => new Date(info.getValue() as string).toLocaleDateString('es'),
+  },
+  {
+    id: 'actions',
+    header: 'Acciones',
+    enableSorting: false,
+    enableGlobalFilter: false,
+    cell: (info) => h(RouterLink, { to: `/users/${info.row.original.id}` }, () => 'Editar'),
   },
 ]
 

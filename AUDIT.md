@@ -163,7 +163,7 @@
 
 ## Fase 2 — Patrones + app
 
-🚧 **En curso**, por slices.
+✅ **Cerrada (2026-06-19)**, en 2 slices. Patrones del DS (PageHeader, DataTable, FormField) + app Tejido con flujos reales (listado, login con auth, detalle/edición), datos vía MSW, validación con Zod.
 
 ### Slice 1 — Patrón + pantalla + datos (PageHeader · DataTable · MSW · pantalla Usuarios)
 
@@ -205,6 +205,45 @@
 - El adaptador DTO→dominio del service es passthrough (el mock ya da forma de dominio); el punto de extensión está documentado en `services/users.ts`.
 
 **Veredicto:** ✅ **Loop patrón+pantalla+datos validado.** Listo para Slice 2 (Form + login + detalle).
+
+### Slice 2 — Formularios y flujos (FormField · login · detalle/edición)
+
+**Estado:** ✅ auditado · **Fecha:** 2026-06-19. **Cierra la Fase 2.**
+
+**Entregado (DS):**
+
+- **FormField** (patrón): puente entre **vee-validate** (headless, ADR-010) y el `Input` del DS. El consumidor declara el esquema (Zod) en su `useForm`; el campo se conecta por `name`. **vee-validate es peer dependency** (una sola instancia, como Reka). 3 tests incl. axe + validación con contexto de formulario.
+
+**Entregado (app — Tejido):**
+
+- **Validación con Zod** (ADR-010): `schemas/auth.ts` y `schemas/user.ts`. Un schema = validación + tipos (`z.infer`). Conectados a vee-validate con `toTypedSchema`.
+- **Login real**: `LoginPage` (form con FormField + Zod), `services/auth.ts` + `stores/auth.ts` (token + persistencia en localStorage), handler MSW `POST /api/login`. **Guard de ruta**: las rutas no públicas redirigen a `/login` con `redirect`.
+- **Detalle/edición**: `UserDetailPage` (`/users/:id`): carga el usuario, formulario con FormField (texto) + `Select` (rol/estado vía `useField`), guarda con `PUT /api/users/:id` y dispara un **Toast** de éxito. Listado con columna de acciones → "Editar".
+- **ToastProvider** integrado en `App.vue` (primer uso real del Toast en la app); logout + estado de sesión en la nav.
+- Test de integración del **store de auth** contra MSW (login OK / credenciales inválidas / signOut).
+
+**Verificaciones:**
+
+| Check             | Resultado                                                       |
+| ----------------- | --------------------------------------------------------------- |
+| `pnpm typecheck`  | ✅ 4/4 (cadena forms + Zod + `toTypedSchema`)                   |
+| `pnpm lint`       | ✅ 3/3, 0/0                                                     |
+| `pnpm test`       | ✅ DS **87/87** · App **7/7** (auth+users integración MSW)       |
+| `pnpm build`      | ✅ ds + app                                                     |
+| `pnpm size`       | ✅ App 86.6 kB · DS 6.7 kB (budgets 180/15)                     |
+| `build-storybook` | ✅ compila las 11 stories (incl. FormField)                     |
+
+**Hallazgos y correcciones:**
+
+1. **FormField (no genérico) + Storybook**: `name` requerido obligaba a `args`; se añadió `args` al meta (el `render` los ignora).
+2. **vee-validate como singleton**: declarado **peer dependency** del DS para compartir el contexto `useForm`/`useField` entre app y DS (mismo razonamiento que Reka UI, ADR-008).
+
+**Deuda aceptada:**
+
+- Auth simulada (token fake en MSW, clave demo `telar123`); sin refresh ni expiración. Suficiente para demostrar el flujo; observabilidad/JWT real es Fase 3 / backend.
+- El DS no tiene aún un `FormSelect` dedicado: en el detalle, el `Select` se enlaza a `useField` desde la página. Candidato a patrón si crece el uso.
+
+**Veredicto de Fase 2:** ✅ **Aprobada.** Los 3 patrones (PageHeader, DataTable, FormField) existen y están ejercidos por pantallas reales (listado, login, detalle) con estados loading/empty/error, datos por MSW y validación por Zod. El DS demostró que resuelve flujos de producción. Listo para **Fase 3** (E2E, Lighthouse ya activo, visual regression, observabilidad, release).
 
 ## Fase 3 — Endurecimiento
 
