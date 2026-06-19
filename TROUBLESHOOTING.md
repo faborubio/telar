@@ -82,6 +82,14 @@
 - Solución: añadir `**/storybook-static/**` (y ya estaban `**/dist/**`, etc.) al bloque `ignores` de `eslint.config.js`.
 - Prevención: cualquier carpeta de build/artefactos nueva debe agregarse a `ignores` de ESLint, además de a `.gitignore`.
 
+## [2026-06-19] `import.meta.url` no es file:// dentro de vitest (jsdom)
+
+- Contexto: `contracts.test.ts` que escanea el filesystem con `fileURLToPath(new URL('../components', import.meta.url))`.
+- Síntoma: `TypeError: The URL must be of scheme file` al colectar el test (0 tests).
+- Causa raíz: bajo vitest + jsdom, `import.meta.url` no siempre resuelve a un `file://` utilizable por `fileURLToPath`.
+- Solución: derivar rutas desde `process.cwd()` (vitest corre con cwd = root del paquete): `resolve(process.cwd(), 'src/components')`.
+- Prevención: en tests que tocan el FS, anclar en `process.cwd()` en lugar de `import.meta.url`.
+
 ---
 
 ## Notas del entorno (gotchas Windows / pnpm / Node)

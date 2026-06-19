@@ -61,7 +61,11 @@ pnpm dev                 # levanta la app Tejido
 | `pnpm tokens`    | Regenera los tokens (Style Dictionary).          |
 | `pnpm typecheck` | Type-check estricto (`vue-tsc`).                 |
 | `pnpm lint`      | ESLint (incl. regla de dependencia `ds ✗→ app`). |
-| `pnpm test`      | Tests unit + componente (Vitest).                |
+| `pnpm test`      | Tests unit + componente + contrato (Vitest).     |
+| `pnpm size`      | Presupuestos de bundle (`size-limit`).           |
+| `pnpm changeset` | Registra un cambio para versionar el DS.         |
+
+Storybook del DS: `pnpm -C packages/ds storybook` (dev, :6006) · `pnpm -C packages/ds build-storybook`.
 
 ## Estructura
 

@@ -31,4 +31,4 @@ export type { ToastItem, ToastOptions, ToastVariant } from './composables/useToa
 export { tokens } from './tokens/generated/tokens'
 export type { TokenName, TokenVar } from './tokens/generated/tokens'
 
-export const version = '0.0.0'
+export const version = '0.1.0'

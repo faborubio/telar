@@ -34,6 +34,16 @@ export default tseslint.config(
     },
   },
 
+  // Permitir args/vars con prefijo _ deliberadamente sin usar.
+  {
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+    },
+  },
+
   // Ajustes para SFCs de Vue en un DS tipado.
   {
     files: ['**/*.vue'],

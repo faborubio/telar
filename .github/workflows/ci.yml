@@ -45,3 +45,30 @@ jobs:
 
       - name: Build (ds library + app SPA)
         run: pnpm build
+
+      - name: Size budgets (size-limit)
+        run: pnpm size
+
+  lighthouse:
+    name: Lighthouse CI (performance + a11y budgets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build app
+        run: pnpm build
+
+      - name: Run Lighthouse CI
+        run: pnpm lighthouse

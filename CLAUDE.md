@@ -9,7 +9,7 @@
 
 | Documento                                | Para qué sirve                                                                                                                           | Cuándo leerlo                                                          |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| **[SAD.md](SAD.md)**                     | **Fuente de verdad arquitectónica**: contexto, drivers de calidad, ADR-001…012, capas, testing, performance, riesgos, roadmap por fases. | **Siempre primero.** Toda decisión técnica se justifica contra el SAD. |
+| **[SAD.md](SAD.md)**                     | **Fuente de verdad arquitectónica**: contexto, drivers de calidad, ADR-001…015, capas, testing, performance, riesgos, roadmap por fases. | **Siempre primero.** Toda decisión técnica se justifica contra el SAD. |
 | [README.md](README.md)                   | Qué es el proyecto, cómo levantarlo, scripts, estructura.                                                                                | Para correr/entender el proyecto.                                      |
 | [AUDIT.md](AUDIT.md)                     | Auditoría al cierre de **cada fase**: qué se entregó, hallazgos, deuda, decisiones.                                                      | Al terminar/iniciar una fase.                                          |
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Bitácora de errores ya resueltos para **no repetirlos**.                                                                                 | Ante cualquier error: buscar aquí antes de depurar de cero.            |
@@ -71,16 +71,20 @@ Detalle de capas del DS y flujo de datos: **SAD §4 y §6**.
 
 > Todos vía pnpm + Turborepo. Turbo solo rebuildea/testea lo afectado.
 
-| Comando                    | Qué hace                                                        |
-| -------------------------- | --------------------------------------------------------------- |
-| `pnpm install`             | Instala dependencias del workspace.                             |
-| `pnpm tokens`              | Genera CSS vars + tipos TS desde los tokens (Style Dictionary). |
-| `pnpm dev`                 | Levanta la app (`packages/app`) en modo dev.                    |
-| `pnpm build`               | Build de todos los paquetes (ds en modo library, app SPA).      |
-| `pnpm typecheck`           | `vue-tsc` estricto en todo el workspace.                        |
-| `pnpm lint`                | ESLint (incluye regla de dependencia `ds ✗→ app`).              |
-| `pnpm test`                | Vitest (unit + component) en ambos paquetes.                    |
-| `pnpm -C packages/app dev` | Forma explícita de correr un paquete concreto.                  |
+| Comando                         | Qué hace                                                        |
+| ------------------------------- | --------------------------------------------------------------- |
+| `pnpm install`                  | Instala dependencias del workspace.                             |
+| `pnpm tokens`                   | Genera CSS vars + tipos TS desde los tokens (Style Dictionary). |
+| `pnpm dev`                      | Levanta la app (`packages/app`) en modo dev.                    |
+| `pnpm build`                    | Build de todos los paquetes (ds en modo library, app SPA).      |
+| `pnpm typecheck`                | `vue-tsc` estricto en todo el workspace.                        |
+| `pnpm lint`                     | ESLint (incluye regla de dependencia `ds ✗→ app`).              |
+| `pnpm test`                     | Vitest (unit + component + **contrato/DoD**) en ambos paquetes. |
+| `pnpm size`                     | Presupuestos de bundle (`size-limit`); rompe si excede budget.  |
+| `pnpm lighthouse`               | Lighthouse CI sobre la app construida (corre en CI).            |
+| `pnpm changeset`                | Registra un cambio para versionar el DS (Changesets).           |
+| `pnpm -C packages/ds storybook` | Storybook del DS en dev (:6006).                                |
+| `pnpm -C packages/app dev`      | Forma explícita de correr un paquete concreto.                  |
 
 (La tabla se mantiene al día conforme se agregan scripts; ver README para el detalle.)
 
@@ -88,7 +92,7 @@ Detalle de capas del DS y flujo de datos: **SAD §4 y §6**.
 
 ## 5. Convenciones de trabajo (cómo se construye aquí)
 
-1. **El test se escribe con el código, no después** (SAD §7). Un componente no está "hecho" sin su DoD completo (SAD §7, "Definición de Done").
+1. **El test se escribe con el código, no después** (SAD §7). Un componente no está "hecho" sin su DoD completo (SAD §7, "Definición de Done"). El DoD es **ejecutable** (ADR-013): `src/test/contracts.test.ts` rompe el build si un componente no tiene `.vue`/`.stories.ts`/`.test.ts` o si un SFC usa colores literales; la cobertura tiene umbral; `size-limit` y Lighthouse CI verifican performance.
 2. **Sin valores mágicos:** nada de hex/px sueltos en componentes; solo tokens semánticos/de componente.
 3. **Accesibilidad no es opcional:** 0 violaciones críticas de axe; navegable por teclado. El comportamiento complejo viene de Reka UI, no se reinventa.
 4. **API pública explícita:** lo que no está en `packages/ds/src/index.ts` no es parte del contrato. Exports nombrados, `sideEffects` declarado (el CSS cuenta).

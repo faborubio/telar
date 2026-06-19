@@ -5,11 +5,11 @@
 | Campo           | Valor                                                   |
 | --------------- | ------------------------------------------------------- |
 | Proyecto        | Telar — Design System en Vue 3 + app de referencia      |
-| Versión         | 1.1.0                                                   |
+| Versión         | 1.2.0                                                   |
 | Estado          | Approved for implementation                             |
 | Autor           | Fabián Rubio — Full Stack / Frontend                    |
 | Audiencia       | Equipo de ingeniería, UX, Product, evaluadores técnicos |
-| Última revisión | 2026-06-18                                              |
+| Última revisión | 2026-06-19                                              |
 
 > **Nota de lectura.** Este documento describe _por qué_ el sistema está construido como está, no solo _qué_ contiene. Las decisiones se registran como ADRs (Architecture Decision Records) con su contexto y trade-offs, porque en producción lo que se paga caro no es la decisión, sino la decisión sin rastro de por qué se tomó. El nombre **Telar** (el sistema que entrelaza tokens y comportamiento en UI consistente) y **Tejido** (la app que demuestra que el telar funciona) son la metáfora rectora del proyecto: los _tokens son los hilos_, los componentes son la tela. Las herramientas de terceros nombradas como ejemplo (Chromatic para visual regression, Sentry para observabilidad) sí son intercambiables.
 
@@ -226,6 +226,27 @@ El DS no es "una carpeta de componentes". Es una jerarquía con responsabilidade
 **Razón:** elimina el costo de proxificar datos que no necesitan reactividad profunda y acota el DOM a lo visible.
 **Trade-off:** la virtualización complica la accesibilidad (filas no presentes en el DOM) y el testing E2E; por eso se aplica **solo** donde el volumen lo justifica, no por defecto (evitar optimización prematura).
 
+### ADR-013 — La Definition of Done es ejecutable, no un acuerdo de honor
+
+**Contexto:** el DoD (§7) y la regla "sin valores mágicos" (§7.1) son la médula de la calidad del DS, pero como prosa se erosionan el día que hay prisa: un componente sin story o con un hex hardcodeado pasa si nadie lo nota en review.
+**Decisión:** convertir el DoD en **gates automatizados** que rompen el build: (a) un _contract test_ que falla si un componente del DS no entrega `.vue` + `.stories.ts` + `.test.ts`; (b) un test que falla si un SFC usa colores literales (hex/rgb/hsl) en lugar de tokens; (c) un **umbral de cobertura** (líneas/funcs/stmts ≥ 80, branches ≥ 70) que rompe el build.
+**Razón:** mueve la verdad del proyecto desde "lo que dice el .md" a "lo que el pipeline verifica". La calidad deja de depender de la memoria del revisor.
+**Trade-off:** algún falso positivo ocasional (p. ej. un caso legítimo de px) obliga a refinar la regla o documentar la excepción. Barato frente a la deuda que evita.
+
+### ADR-014 — Storybook como documentación viva y base de regresión visual
+
+**Contexto:** el DoD exige documentar cada componente (props/eventos/slots/ejemplo). Mantener esa doc a mano diverge del código.
+**Decisión:** la documentación es **autodocs de Storybook** generada desde los tipos + JSDoc del componente (un único artefacto sirve como doc, playground y base de _visual regression_ — "story-as-test", §10.1). Se adopta Storybook 8 (Vue 3 + Vite) con `addon-a11y` (axe en el canvas) y un toolbar de tema light/dark.
+**Razón:** una sola fuente para doc, demo y test visual; la doc no puede mentir porque se deriva del propio componente.
+**Trade-off:** Storybook añade peso de tooling de desarrollo (no de runtime). Aceptable: no entra en el bundle del DS.
+
+### ADR-015 — Los presupuestos de performance se verifican en CI, no se asumen
+
+**Contexto:** §9 fija budgets (JS inicial app < 180 KB gzip, Core Web Vitals). Un budget que no se mide es un deseo.
+**Decisión:** **`size-limit`** rompe el build si el bundle excede su presupuesto, y **Lighthouse CI** corre sobre la app construida en cada PR, con asserts sobre los budgets (LCP/CLS) y accesibilidad. Los números viven en CI, no en una afirmación del README.
+**Razón:** convierte "performance presupuestada" (§9) de eslogan en check reproducible; una regresión de tamaño o de Web Vitals falla antes de mergear.
+**Trade-off:** Lighthouse en CI tiene varianza de laboratorio; por eso sus asserts de performance son _warn_ y los de accesibilidad _error_. El gate duro y estable es `size-limit`.
+
 ---
 
 ## 6. Estrategia de estado y datos (en la app)
@@ -391,6 +412,7 @@ Cada fase termina con algo demostrable y testeado. No hay una fase "de testing a
 | ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1.0.0   | 2026-06-18 | Baseline. Arquitectura, ADR-001…007, vistas, testing, performance, riesgos, roadmap.                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | 1.1.0   | 2026-06-18 | Nombre del proyecto definido (Telar / Tejido). Nuevas decisiones de fundación: ADR-008 (Reka UI headless), ADR-009 (tokens en tres niveles + Style Dictionary, refina ADR-002), ADR-010 (TanStack Table + vee-validate/Zod), ADR-011 (CSS @layer + `:where()`), ADR-012 (shallowRef + virtualización). Capa headless agregada al modelo de capas (§4.2). Tácticas de performance ampliadas (container queries, anti-FOUC). CI con caché de tareas afectadas (Turborepo) y story-as-test. Riesgos de dependencia (Reka) y virtualización añadidos. |
+| 1.2.0   | 2026-06-19 | Decisiones surgidas durante la implementación (Fases 0–1): ADR-013 (DoD ejecutable — contract tests + sin colores mágicos + umbral de cobertura), ADR-014 (Storybook como documentación viva y base de visual regression), ADR-015 (presupuestos de performance verificados en CI con size-limit + Lighthouse CI). Reflejan que el SAD es vivo: lo construido retroalimenta lo documentado.                                                                                                                                                       |
 
 ---
 

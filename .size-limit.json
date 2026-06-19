@@ -1,0 +1,12 @@
+[
+  {
+    "name": "App — JS inicial (gzip)",
+    "path": "packages/app/dist/assets/index-*.js",
+    "limit": "180 kB"
+  },
+  {
+    "name": "DS — librería (gzip, tree-shakeable)",
+    "path": "packages/ds/dist/index.js",
+    "limit": "15 kB"
+  }
+]
