@@ -13,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@tanstack/vue-table": "^8.21.0",
     "@telar/ds": "workspace:*",
     "pinia": "^2.2.0",
     "reka-ui": "^2.0.0",
@@ -23,8 +24,14 @@
     "@testing-library/vue": "^8.1.0",
     "@vitejs/plugin-vue": "^5.2.0",
     "jsdom": "^25.0.0",
+    "msw": "^2.14.6",
     "vite": "^6.0.0",
     "vitest": "^2.1.0",
     "vue-tsc": "^2.1.10"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }

@@ -6,4 +6,13 @@ import './styles/app.css'
 import App from './App.vue'
 import { router } from './router'
 
-createApp(App).use(createPinia()).use(router).mount('#app')
+// En desarrollo, MSW intercepta la red antes de montar la app (ADR-006).
+async function enableMocking(): Promise<void> {
+  if (!import.meta.env.DEV) return
+  const { worker } = await import('./mocks/browser')
+  await worker.start({ onUnhandledRequest: 'bypass' })
+}
+
+void enableMocking().then(() => {
+  createApp(App).use(createPinia()).use(router).mount('#app')
+})

@@ -21,6 +21,10 @@ export { default as Tabs } from './components/Tabs/Tabs.vue'
 export type { TabItem } from './components/Tabs/Tabs.vue'
 export { default as ToastProvider } from './components/Toast/ToastProvider.vue'
 
+// ── Patterns ──
+export { default as PageHeader } from './patterns/PageHeader/PageHeader.vue'
+export { default as DataTable } from './patterns/DataTable/DataTable.vue'
+
 // ── Composables ──
 export { useTheme } from './composables/useTheme'
 export type { Theme } from './composables/useTheme'

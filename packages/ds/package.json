@@ -57,5 +57,8 @@
     "vitest-axe": "^0.1.0",
     "vue": "^3.5.0",
     "vue-tsc": "^2.1.10"
+  },
+  "dependencies": {
+    "@tanstack/vue-table": "^8.21.3"
   }
 }

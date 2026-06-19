@@ -5,11 +5,13 @@ packages:
 onlyBuiltDependencies:
   - '@bundled-es-modules/glob'
   - esbuild
+  - msw
   - style-dictionary
   - vue-demi
 
 allowBuilds:
   '@bundled-es-modules/glob': true
   esbuild: true
+  msw: true
   style-dictionary: true
   vue-demi: true

@@ -8,10 +8,12 @@ import { resolve } from 'node:path'
 const root = process.cwd()
 const componentsDir = resolve(root, 'src/components')
 const primitivesDir = resolve(root, 'src/primitives')
+const patternsDir = resolve(root, 'src/patterns')
 
-const componentDirs = readdirSync(componentsDir).filter((name) =>
-  statSync(`${componentsDir}/${name}`).isDirectory(),
-)
+const unitDirs = [
+  ...readdirSync(componentsDir).map((n) => [n, `${componentsDir}/${n}`] as const),
+  ...readdirSync(patternsDir).map((n) => [n, `${patternsDir}/${n}`] as const),
+].filter(([, p]) => statSync(p).isDirectory())
 
 function collectVue(dir: string): string[] {
   const out: string[] = []
@@ -23,12 +25,16 @@ function collectVue(dir: string): string[] {
   return out
 }
 
-const sfcFiles = [...collectVue(componentsDir), ...collectVue(primitivesDir)]
+const sfcFiles = [
+  ...collectVue(componentsDir),
+  ...collectVue(primitivesDir),
+  ...collectVue(patternsDir),
+]
 const label = (file: string): string => file.split(/[/\\]src[/\\]/).at(-1) ?? file
 
-describe('DoD ejecutable (SAD §7): cada componente entrega .vue + story + test', () => {
-  it.each(componentDirs)('"%s" tiene SFC, story y test', (dir) => {
-    const files = readdirSync(`${componentsDir}/${dir}`)
+describe('DoD ejecutable (SAD §7): cada componente/patrón entrega .vue + story + test', () => {
+  it.each(unitDirs)('"%s" tiene SFC, story y test', (_name, dir) => {
+    const files = readdirSync(dir)
     expect(files.some((f) => f.endsWith('.vue'))).toBe(true)
     expect(files.some((f) => f.endsWith('.stories.ts'))).toBe(true)
     expect(files.some((f) => f.endsWith('.test.ts'))).toBe(true)

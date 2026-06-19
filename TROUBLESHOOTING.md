@@ -98,6 +98,22 @@
 - Solución: `node-version: 22` en los workflows; `engines.node` a `>=22.13`; README actualizado.
 - Prevención: alinear la versión de Node del CI con la que exige el `packageManager`. Si se quiere soportar Node 20, fijar una pnpm más antigua (9/10).
 
+## [2026-06-19] SFC genérico (`generic="T"`) rompe el tipado de Storybook
+
+- Contexto: `DataTable.stories.ts` para `DataTable<TData>`.
+- Síntoma: `Type '<TData>(...)' has no properties in common with type 'Omit<ConcreteComponent...>'` y `Property 'args' is missing` en `satisfies Meta<typeof DataTable>`.
+- Causa raíz: Storybook (CSF) no tipa bien componentes Vue genéricos; `Meta<typeof Comp>` espera un `ConcreteComponent`.
+- Solución: omitir `component` del `meta` (tipar `const meta: Meta = {...}`) y renderizar la story vía `render`. Los datos siguen tipados con `ColumnDef<User>` en el módulo.
+- Prevención: para patrones genéricos, no enganchar `component` al meta; documentar props con `parameters.docs.description`.
+
+## [2026-06-19] La app no resolvía `@tanstack/vue-table` (phantom dependency)
+
+- Contexto: `UsersPage.vue` importaba `ColumnDef` desde `@tanstack/vue-table`, que es dep del DS, no de la app.
+- Síntoma: error de resolución de módulo en typecheck/build de la app.
+- Causa raíz: pnpm aísla dependencias; un paquete no puede importar deps transitivas de otro (no hay phantom deps).
+- Solución: declarar `@tanstack/vue-table` como dependencia **directa** de la app.
+- Prevención: si la app importa de una librería headless usada por el DS, esa librería debe estar en las deps de la app también.
+
 ---
 
 ## Notas del entorno (gotchas Windows / pnpm / Node)

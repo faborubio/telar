@@ -18,7 +18,7 @@ export default defineConfig({
     },
     cssCodeSplit: false,
     rollupOptions: {
-      external: ['vue', 'reka-ui'],
+      external: ['vue', 'reka-ui', '@tanstack/vue-table'],
       output: {
         assetFileNames: (asset) =>
           asset.name && asset.name.endsWith('.css') ? 'telar.css' : 'assets/[name][extname]',

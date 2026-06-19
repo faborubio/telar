@@ -14,6 +14,7 @@ const { theme, toggle } = useTheme()
 
           <Stack direction="row" align="center" gap="4">
             <RouterLink to="/">Inicio</RouterLink>
+            <RouterLink to="/users">Usuarios</RouterLink>
             <RouterLink to="/about">Acerca de</RouterLink>
             <button type="button" class="theme-toggle" @click="toggle">
               {{ theme === 'dark' ? '☀️ Claro' : '🌙 Oscuro' }}

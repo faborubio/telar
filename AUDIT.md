@@ -163,7 +163,48 @@
 
 ## Fase 2 — Patrones + app
 
-⬜ Pendiente. DataTable, Form, PageHeader; app: login, listado, detalle, error/empty/loading; MSW.
+🚧 **En curso**, por slices.
+
+### Slice 1 — Patrón + pantalla + datos (PageHeader · DataTable · MSW · pantalla Usuarios)
+
+**Estado:** ✅ auditado · **Fecha:** 2026-06-19.
+
+**Objetivo:** validar el loop completo **patrón del DS → pantalla de la app → datos vía MSW** (service → store → page), de punta a punta. Dominio: usuarios/admin.
+
+**Entregado (DS — capa de patrones):**
+
+- **PageHeader**: título (h1), descripción y slot `actions`. 4 tests incl. axe.
+- **DataTable**: SFC **genérico** (`DataTable<TData>`) sobre **TanStack Table** (ADR-010, headless): orden por columna (con `aria-sort`), filtro global, paginación cliente, y estados **loading / empty / error** (con `@retry`). Renderiza con Input/Button del DS. 8 tests incl. axe.
+- Gates de DoD (ADR-013) **extendidos a `patterns/`**: el contract test y el guard de color ahora cubren patrones.
+
+**Entregado (app — Tejido):**
+
+- **MSW** (ADR-006): `mocks/` con data + handlers (`/api/users`), worker para dev (`browser.ts`) y server para test (`server.ts`); worker inicializado en `public/`. Arranque condicional en dev en `main.ts`.
+- **Capa de datos (SAD §6):** `services/users.ts` (única que conoce la URL) → `stores/users.ts` (Pinia: users/loading/error + `load()`) → `pages/UsersPage.vue` (solo compone DS + consume store; no hace fetch directo). Ruta `/users` + link en la nav.
+- **Test de integración real** service→store contra MSW (carga OK + manejo de error 500) → **ADR-006 validado en vivo**.
+
+**Verificaciones:**
+
+| Check            | Resultado                                                                 |
+| ---------------- | ------------------------------------------------------------------------- |
+| `pnpm typecheck` | ✅ 4/4 (incl. genérico DataTable + uso de @telar/ds en la app)            |
+| `pnpm lint`      | ✅ 3/3, 0/0                                                               |
+| `pnpm test`      | ✅ DS **82/82** · App **4/4** (2 de integración MSW) · cobertura > umbral |
+| `pnpm build`     | ✅ ds + app                                                               |
+| `pnpm size`      | ✅ App 49.6 kB · DS 6.5 kB (budgets 180/15)                               |
+
+**Hallazgos y correcciones:**
+
+1. **SFC genérico vs Storybook:** `Meta<typeof DataTable>` no tipa componentes genéricos. Se omitió `component` del meta y se renderiza vía `render` (datos siguen tipados con `ColumnDef<User>`). Registrar en TROUBLESHOOTING.
+2. **Dependencia transitiva:** la app necesitaba `@tanstack/vue-table` como dep **directa** (pnpm no expone phantom deps) para tipar columnas. Añadida.
+
+**Deuda aceptada:**
+
+- DataTable: filtro y paginación **cliente** (suficiente para el volumen del panel; server-side se añadiría con TanStack `manual*` si el dataset crece — ADR-012).
+- Falta el **Form** (vee-validate + Zod) y las pantallas de **login** y **detalle/edición** → Slice 2.
+- El adaptador DTO→dominio del service es passthrough (el mock ya da forma de dominio); el punto de extensión está documentado en `services/users.ts`.
+
+**Veredicto:** ✅ **Loop patrón+pantalla+datos validado.** Listo para Slice 2 (Form + login + detalle).
 
 ## Fase 3 — Endurecimiento
 

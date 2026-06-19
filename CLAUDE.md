@@ -111,7 +111,10 @@ Detalle de capas del DS y flujo de datos: **SAD §4 y §6**.
   - **Slice 2:** Checkbox, RadioGroup, Select, Tabs, Toast (useToast). Todos sobre Reka UI.
   - **Componentes del DS:** Button, Input, Modal, Checkbox, RadioGroup, Select, Tabs, ToastProvider · primitives Box/Stack/Text/Icon · composables useTheme/useToast. Tests 46/46, cobertura 99.7% líneas/80% branches. Ver AUDIT.md → Fase 1.
   - **Comandos:** `pnpm -C packages/ds storybook` (dev, :6006), `pnpm -C packages/ds build-storybook`. Patrón de componente: `packages/ds/src/components/<Name>/` con `.vue` + `.stories.ts` + `.test.ts`, export en `index.ts`. Los componentes interactivos se montan sobre Reka UI (verificar el prop de modelo en su `.d.ts`); en tests usar `findBy*` (Presence/portales).
-- **Fase 2 — Patrones + app:** ⬜ siguiente. DataTable (TanStack Table), Form (vee-validate + Zod), PageHeader; pantallas de la app (login, listado, detalle) con MSW.
+- **Fase 2 — Patrones + app:** 🚧 en curso, por slices.
+  - **Slice 1 ✅ (2026-06-19):** PageHeader + DataTable (genérico, sobre TanStack Table: orden/filtro/paginación + estados loading/empty/error) en `src/patterns/`. App: MSW (dominio usuarios), capa service→store(Pinia)→UsersPage, ruta `/users`. Test de integración con MSW (ADR-006 validado). Gates de DoD extendidos a `patterns/`. Ver AUDIT.md → Fase 2 / Slice 1.
+  - **Slice 2 ⬜ siguiente:** Form (vee-validate + Zod) + pantallas login y detalle/edición.
+  - **Notas:** los patrones del DS viven en `src/patterns/<Name>/` (mismo trío .vue+.stories+.test). MSW: `packages/app/src/mocks/` (handlers compartidos dev+test), worker en `public/`. La app declara `@tanstack/vue-table` como dep directa (no phantom).
 - **Fase 3 — Endurecimiento:** ⬜ pendiente.
 
 Detalle del roadmap: **SAD §12**. Resultado de cada fase: **[AUDIT.md](AUDIT.md)**.
