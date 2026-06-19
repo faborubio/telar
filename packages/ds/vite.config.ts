@@ -31,5 +31,19 @@ export default defineConfig({
     css: false,
     setupFiles: ['src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.ts'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,vue}'],
+      // Artefactos, contratos y stories no cuentan para la cobertura de comportamiento.
+      exclude: [
+        'src/**/*.{test,spec}.ts',
+        'src/**/*.stories.ts',
+        'src/test/**',
+        'src/tokens/generated/**',
+        'src/env.d.ts',
+        'src/index.ts',
+      ],
+      thresholds: { lines: 80, functions: 80, statements: 80, branches: 70 },
+    },
   },
 })

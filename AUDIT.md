@@ -75,7 +75,53 @@
 
 ## Fase 1 — Núcleo del DS
 
-⬜ Pendiente. Button, Input, Select, Checkbox/Radio, Modal, Toast, Tabs (tests + a11y + stories).
+🚧 **En curso.** Entrega por slices para validar el patrón de "alta de componente" antes de producir en serie.
+
+### Slice 1 — Patrón de alta de componente (Button · Input · Modal)
+
+**Estado:** ✅ auditado · **Fecha:** 2026-06-18.
+
+**Objetivo del slice:** fijar y validar el patrón end-to-end con tres arquetipos distintos: **Button** (acción estática), **Input** (campo de formulario con a11y de label/error), **Modal** (interactivo sobre Reka UI — valida ADR-008). Con el patrón aprobado, el resto de componentes se produce en serie.
+
+**El patrón de alta de componente queda así** (cada componente):
+
+1. `components/<Name>/<Name>.vue` — SFC tipado, props/emits/slots con JSDoc, **solo tokens** (sin hex/px), CSS `scoped` en `@layer ds`.
+2. `<Name>.stories.ts` — CSF3 con `tags: ['autodocs']`: default + todas las variantes/estados.
+3. `<Name>.test.ts` — render + cada variante + interacción de teclado + **check de axe**.
+4. Export nombrado en `src/index.ts` (API pública).
+5. Documentación = autodocs de Storybook (props/eventos/slots desde los tipos + JSDoc).
+
+**Entregado:**
+
+- **Button**: variantes primary/secondary/danger, tamaños sm/md/lg, estados loading (aria-busy) / disabled / block. 6 tests incl. axe.
+- **Input**: label asociado vía `useId`, `aria-describedby`/`aria-invalid`, estados description/error/required/disabled. 5 tests incl. axe.
+- **Modal**: sobre Reka `Dialog` (focus trap, escape, scroll lock, ARIA heredados); Telar solo aporta tokens/CSS. v-model:open, slots body/footer. 5 tests incl. axe → **ADR-008 validado en vivo**.
+- **Storybook 8** (Vue3+Vite) con `addon-a11y` (axe en el canvas) y toolbar de **tema light/dark** (ADR-003); stories de los 3 componentes.
+- **Cobertura activada** (umbral que rompe el build): `@vitest/coverage-v8`, thresholds líneas/funcs/stmts 80 / branches 70.
+- Tokens nuevos: `color-overlay` (semantic), `shadow-*` (primitive), `elevation-raised/modal` (semantic).
+
+**Verificaciones:**
+
+| Check             | Resultado                                                            |
+| ----------------- | -------------------------------------------------------------------- |
+| `pnpm typecheck`  | ✅ 4/4                                                               |
+| `pnpm lint`       | ✅ 3/3, 0/0                                                          |
+| `pnpm test`       | ✅ DS 27/27 · cobertura **99.4% líneas / 75.9% branches** (> umbral) |
+| `pnpm build`      | ✅ ds + app                                                          |
+| `build-storybook` | ✅ compila las 3 stories                                             |
+
+**Hallazgos y correcciones:**
+
+1. **Modal + Reka Presence:** el contenido del diálogo monta un tick después; `getByRole` síncrono fallaba. Corregido usando `findByRole` (async). Registrado en TROUBLESHOOTING.
+2. **Aviso de Reka "Missing Description":** se mantiene a propósito (un diálogo titulado sin descripción es ARIA-válido; el sentinel generaría una violación de axe peor). Registrado.
+
+**Deuda aceptada:**
+
+- Faltan **Select, Checkbox/Radio, Toast, Tabs** (slice 2) — se producen en serie con el patrón ya aprobado.
+- **Visual regression** (Chromatic/test-runner) aún no conectado; Storybook ya es la base. Llega en Fase 3.
+- Cobertura de branches al 75.9%: por guardas defensivas `typeof window/localStorage` en `useTheme` (entorno-dependientes, difíciles de cubrir sin mocks de entorno). Aceptable sobre el umbral de 70.
+
+**Veredicto:** ✅ **Patrón aprobado.** Listo para producir Select/Checkbox/Radio/Toast/Tabs siguiendo el mismo molde.
 
 ## Fase 2 — Patrones + app
 

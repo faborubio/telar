@@ -102,7 +102,10 @@ Detalle de capas del DS y flujo de datos: **SAD §4 y §6**.
 > Mantener esta sección como el "dónde estamos". Actualizar al cerrar cada fase.
 
 - **Fase 0 — Cimientos:** ✅ **cerrada y auditada** (2026-06-18). Monorepo pnpm+Turborepo, TS estricto, ESLint con regla `ds ✗→ app` (verificada en vivo), pipeline de tokens 3 niveles + theming dark/light, primitives Box/Stack/Text/Icon, `useTheme`, app SPA consumiendo el DS, CI + Changesets. Verificaciones en verde (typecheck/lint/test/build, JS app 38.7 kB gzip). Detalle y deuda aceptada en [AUDIT.md](AUDIT.md).
-- **Fase 1 — Núcleo del DS:** ⬜ siguiente. Button, Input, Select, Checkbox/Radio, Modal, Toast, Tabs (sobre Reka UI) con tests + a11y + stories. Aquí se ejerce por primera vez Reka UI y se activa el umbral de cobertura.
+- **Fase 1 — Núcleo del DS:** 🚧 en curso, por slices.
+  - **Slice 1 ✅ (2026-06-18):** Button, Input, Modal (sobre Reka UI) + Storybook 8 (addon-a11y + toolbar de tema) + cobertura con umbral. **Patrón de alta de componente fijado y validado** (ver AUDIT.md → Fase 1 / Slice 1). Reka UI ejercido por primera vez (Modal valida ADR-008).
+  - **Slice 2 ⬜ siguiente:** Select, Checkbox/Radio, Toast, Tabs — en serie con el mismo patrón.
+  - **Comandos nuevos:** `pnpm -C packages/ds storybook` (dev, :6006), `pnpm -C packages/ds build-storybook`. Patrón de componente: `packages/ds/src/components/<Name>/` con `.vue` + `.stories.ts` + `.test.ts`, export en `index.ts`.
 - **Fase 2 — Patrones + app:** ⬜ pendiente.
 - **Fase 3 — Endurecimiento:** ⬜ pendiente.
 

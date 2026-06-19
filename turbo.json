@@ -18,6 +18,10 @@
     "test": {
       "dependsOn": ["tokens"]
     },
+    "build-storybook": {
+      "dependsOn": ["tokens"],
+      "outputs": ["storybook-static/**"]
+    },
     "dev": {
       "cache": false,
       "persistent": true,

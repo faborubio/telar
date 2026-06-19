@@ -9,6 +9,8 @@
     "border": { "value": "{color.gray.800}" },
     "border-strong": { "value": "{color.gray.700}" },
 
+    "overlay": { "value": "rgba(0, 0, 0, 0.6)" },
+
     "text": { "value": "{color.gray.50}" },
     "text-muted": { "value": "{color.gray.400}" },
     "text-subtle": { "value": "{color.gray.500}" },

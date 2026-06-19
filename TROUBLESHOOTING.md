@@ -42,6 +42,22 @@
 - Solución: añadir `eslint-config-prettier` al **final** del flat config (apaga reglas de formato) y eliminar el triple-slash.
 - Prevención: Prettier es dueño del formato; ESLint, de la corrección. Para tipos de Vitest, importar de `vitest/config`, no usar triple-slash.
 
+## [2026-06-18] Tests de Modal (Reka Dialog) no encuentran el contenido con getByRole
+
+- Contexto: `pnpm test` en packages/ds, `Modal.test.ts`.
+- Síntoma: `Unable to find an accessible element with the role "dialog"` aunque `open=true`; el body muestra divs vacíos.
+- Causa raíz: Reka monta el contenido del `DialogContent` con **Presence** (un tick después del render). Las queries **síncronas** (`getByRole`) corren antes de que exista. Los tests con `await` (Escape, axe) sí pasaban.
+- Solución: usar las queries **asíncronas** de Testing Library (`findByRole`), que esperan a que aparezca el nodo.
+- Prevención: para componentes interactivos montados con Presence/portales (Modal, Tooltip, Dropdown…), consultar el contenido con `findBy*`, no `getBy*`.
+
+## [2026-06-18] Reka avisa "Missing Description or aria-describedby" en DialogContent
+
+- Contexto: render de `Modal` sin prop `description`.
+- Síntoma (stderr, dev-only): `Warning: Missing 'Description' or 'aria-describedby="undefined"' for DialogContent.`
+- Causa raíz: Reka pide que el diálogo sea descrito o que se opte por no hacerlo con el sentinel `aria-describedby="undefined"`.
+- Decisión: **se deja el aviso**. Un diálogo con `title` pero sin descripción es válido en ARIA. El sentinel `aria-describedby="undefined"` provocaría una violación **real** de axe (`aria-describedby` apuntando a un id inexistente), que es peor que un warning de dev. Cuando hay `description`, Reka asocia el id correctamente y el aviso no aparece.
+- Prevención: pasar `description` cuando exista contenido descriptivo; el aviso sin descripción es esperado y benigno.
+
 ---
 
 ## Notas del entorno (gotchas Windows / pnpm / Node)

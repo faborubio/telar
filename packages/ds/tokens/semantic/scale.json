@@ -12,5 +12,9 @@
     "body": { "value": "{font.size.md}" },
     "caption": { "value": "{font.size.sm}" },
     "heading": { "value": "{font.size.2xl}" }
+  },
+  "elevation": {
+    "raised": { "value": "{shadow.md}" },
+    "modal": { "value": "{shadow.lg}" }
   }
 }
