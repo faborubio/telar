@@ -1,0 +1,24 @@
+{
+  "button": {
+    "radius": { "value": "{radius.md}" },
+    "font-weight": { "value": "{font.weight.medium}" },
+    "padding-x": { "value": "{space.4}" },
+    "padding-y": { "value": "{space.2}" },
+    "primary": {
+      "bg": { "value": "{color.action}" },
+      "bg-hover": { "value": "{color.action-hover}" },
+      "bg-active": { "value": "{color.action-active}" },
+      "fg": { "value": "{color.text-on-action}" }
+    },
+    "secondary": {
+      "bg": { "value": "{color.surface}" },
+      "bg-hover": { "value": "{color.bg-muted}" },
+      "fg": { "value": "{color.text}" },
+      "border": { "value": "{color.border-strong}" }
+    },
+    "danger": {
+      "bg": { "value": "{color.danger}" },
+      "fg": { "value": "{color.text-on-action}" }
+    }
+  }
+}

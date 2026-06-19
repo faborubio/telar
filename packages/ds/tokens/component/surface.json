@@ -1,0 +1,16 @@
+{
+  "card": {
+    "bg": { "value": "{color.surface}" },
+    "border": { "value": "{color.border}" },
+    "radius": { "value": "{radius.lg}" },
+    "padding": { "value": "{space.6}" }
+  },
+  "input": {
+    "bg": { "value": "{color.surface}" },
+    "border": { "value": "{color.border-strong}" },
+    "border-focus": { "value": "{color.focus-ring}" },
+    "fg": { "value": "{color.text}" },
+    "placeholder": { "value": "{color.text-subtle}" },
+    "radius": { "value": "{radius.md}" }
+  }
+}

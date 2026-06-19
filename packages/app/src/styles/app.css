@@ -1,0 +1,17 @@
+/* Estilos propios de la app, en la capa `app` (siempre gana al DS — ADR-011).
+   El orden de capas ya se declaró en index.html: @layer reset, ds, app; */
+@layer app {
+  body {
+    margin: 0;
+  }
+
+  .app-shell {
+    min-height: 100vh;
+  }
+
+  .app-container {
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: var(--space-6);
+  }
+}

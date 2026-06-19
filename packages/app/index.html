@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tejido — Telar Design System</title>
+
+    <!-- Orden de capas global (ADR-011): la app gana al DS sin guerras de !important. -->
+    <style>
+      @layer reset, ds, app;
+    </style>
+
+    <!-- Anti-FOUC (SAD §9): fija data-theme ANTES del primer paint. Sin esto hay flash de tema. -->
+    <script>
+      ;(function () {
+        try {
+          var stored = localStorage.getItem('telar-theme')
+          var theme =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+          document.documentElement.setAttribute('data-theme', theme)
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light')
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

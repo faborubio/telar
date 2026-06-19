@@ -1,0 +1,16 @@
+{
+  "space": {
+    "none": { "value": "{space.0}" },
+    "xs": { "value": "{space.1}" },
+    "sm": { "value": "{space.2}" },
+    "md": { "value": "{space.4}" },
+    "lg": { "value": "{space.6}" },
+    "xl": { "value": "{space.8}" },
+    "2xl": { "value": "{space.12}" }
+  },
+  "text": {
+    "body": { "value": "{font.size.md}" },
+    "caption": { "value": "{font.size.sm}" },
+    "heading": { "value": "{font.size.2xl}" }
+  }
+}

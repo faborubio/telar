@@ -1,0 +1,39 @@
+/* Estilos base de Telar. Capa `ds`, escritos con :where() (especificidad 0)
+   para que la app pueda overridear de forma trivial (ADR-011). */
+
+:where(html) {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+}
+
+:where(body) {
+  color: var(--color-text);
+  background-color: var(--color-bg);
+}
+
+:where(a) {
+  color: var(--color-action);
+  text-decoration: none;
+}
+
+:where(a:hover) {
+  text-decoration: underline;
+}
+
+/* Foco visible siempre (SAD §8). */
+:where(:focus-visible) {
+  outline: var(--border-width-thick) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Respeta prefers-reduced-motion (SAD §8). */
+@media (prefers-reduced-motion: reduce) {
+  :where(*, *::before, *::after) {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

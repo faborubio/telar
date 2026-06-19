@@ -1,0 +1,30 @@
+{
+  "name": "@telar/app",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tejido — app de referencia construida sobre el Design System Telar.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@telar/ds": "workspace:*",
+    "pinia": "^2.2.0",
+    "reka-ui": "^2.0.0",
+    "vue": "^3.5.0",
+    "vue-router": "^4.4.0"
+  },
+  "devDependencies": {
+    "@testing-library/vue": "^8.1.0",
+    "@vitejs/plugin-vue": "^5.2.0",
+    "jsdom": "^25.0.0",
+    "vite": "^6.0.0",
+    "vitest": "^2.1.0",
+    "vue-tsc": "^2.1.10"
+  }
+}

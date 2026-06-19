@@ -1,0 +1,27 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "stream",
+  "tasks": {
+    "tokens": {
+      "outputs": ["src/tokens/generated/**"]
+    },
+    "build": {
+      "dependsOn": ["^build", "tokens"],
+      "outputs": ["dist/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build", "tokens"]
+    },
+    "lint": {
+      "dependsOn": ["tokens"]
+    },
+    "test": {
+      "dependsOn": ["tokens"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build", "tokens"]
+    }
+  }
+}

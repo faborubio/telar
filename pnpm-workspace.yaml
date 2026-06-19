@@ -1,0 +1,15 @@
+packages:
+  - 'packages/*'
+
+# Dependencias cuyo build script se permite ejecutar (esbuild necesita su binario, etc.).
+onlyBuiltDependencies:
+  - '@bundled-es-modules/glob'
+  - esbuild
+  - style-dictionary
+  - vue-demi
+
+allowBuilds:
+  '@bundled-es-modules/glob': true
+  esbuild: true
+  style-dictionary: true
+  vue-demi: true

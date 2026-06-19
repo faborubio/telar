@@ -1,0 +1,34 @@
+{
+  "space": {
+    "0": { "value": "0" },
+    "1": { "value": "0.25rem" },
+    "2": { "value": "0.5rem" },
+    "3": { "value": "0.75rem" },
+    "4": { "value": "1rem" },
+    "5": { "value": "1.25rem" },
+    "6": { "value": "1.5rem" },
+    "8": { "value": "2rem" },
+    "10": { "value": "2.5rem" },
+    "12": { "value": "3rem" },
+    "16": { "value": "4rem" }
+  },
+  "radius": {
+    "none": { "value": "0" },
+    "sm": { "value": "0.25rem" },
+    "md": { "value": "0.5rem" },
+    "lg": { "value": "0.75rem" },
+    "xl": { "value": "1rem" },
+    "full": { "value": "9999px" }
+  },
+  "icon": {
+    "sm": { "value": "1rem" },
+    "md": { "value": "1.25rem" },
+    "lg": { "value": "1.5rem" }
+  },
+  "border": {
+    "width": {
+      "thin": { "value": "1px" },
+      "thick": { "value": "2px" }
+    }
+  }
+}

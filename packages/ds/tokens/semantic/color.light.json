@@ -1,0 +1,31 @@
+{
+  "color": {
+    "bg": { "value": "{color.white}" },
+    "bg-subtle": { "value": "{color.gray.50}" },
+    "bg-muted": { "value": "{color.gray.100}" },
+    "surface": { "value": "{color.white}" },
+    "surface-raised": { "value": "{color.white}" },
+
+    "border": { "value": "{color.gray.200}" },
+    "border-strong": { "value": "{color.gray.300}" },
+
+    "text": { "value": "{color.gray.900}" },
+    "text-muted": { "value": "{color.gray.600}" },
+    "text-subtle": { "value": "{color.gray.500}" },
+    "text-on-action": { "value": "{color.white}" },
+
+    "action": { "value": "{color.blue.600}" },
+    "action-hover": { "value": "{color.blue.700}" },
+    "action-active": { "value": "{color.blue.800}" },
+    "action-subtle": { "value": "{color.blue.50}" },
+
+    "focus-ring": { "value": "{color.blue.500}" },
+
+    "danger": { "value": "{color.red.600}" },
+    "danger-subtle": { "value": "{color.red.100}" },
+    "success": { "value": "{color.green.600}" },
+    "success-subtle": { "value": "{color.green.100}" },
+    "warning": { "value": "{color.amber.500}" },
+    "warning-subtle": { "value": "{color.amber.100}" }
+  }
+}

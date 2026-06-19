@@ -1,0 +1,11 @@
+/* Punto de entrada de estilos de Telar.
+   Orden de capas declarado primero (ADR-011): la app añadirá `app` al final
+   (`@layer reset, ds, app;`) y siempre podrá overridear al DS sin guerras de !important. */
+@layer reset, ds;
+
+/* Tokens: las custom properties no necesitan capa (no compiten por especificidad). */
+@import '../tokens/generated/tokens.css';
+@import '../tokens/generated/tokens.dark.css';
+
+@import './reset.css' layer(reset);
+@import './base.css' layer(ds);
