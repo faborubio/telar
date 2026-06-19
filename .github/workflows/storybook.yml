@@ -38,6 +38,10 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # Los tokens generados están gitignoreados (artefacto de build); hay que generarlos.
+      - name: Generate tokens
+        run: pnpm -C packages/ds tokens
+
       - name: Build Storybook
         run: pnpm -C packages/ds build-storybook
 
