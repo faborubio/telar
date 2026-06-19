@@ -114,6 +114,15 @@
 - Solución: declarar `@tanstack/vue-table` como dependencia **directa** de la app.
 - Prevención: si la app importa de una librería headless usada por el DS, esa librería debe estar en las deps de la app también.
 
+## [2026-06-19] GitHub Pages redirige a un dominio muerto / 301 cacheado
+
+- Contexto: tras desplegar el Storybook, `https://faborubio.github.io/telar/` redirigía a `http://fabianrubio.me/telar/`, que no carga.
+- Síntoma: pantalla en blanco / no carga. `nslookup fabianrubio.me` → **NXDOMAIN**.
+- Causa raíz: la cuenta tenía `fabianrubio.me` como dominio propio en el repo de sitio de usuario `faborubio.github.io`; GitHub redirige **todas** las project pages a ese apex, que no resuelve.
+- Solución: quitar el custom domain del sitio de usuario: `echo '{"cname":null}' | gh api -X PUT repos/faborubio/faborubio.github.io/pages --input -`. (No había archivo `CNAME` en el repo.) Tras propagar, `faborubio.github.io/telar/` sirve directo con 200.
+- **Secuela (caché):** un 301 es _permanente_ y los navegadores lo cachean agresivamente. Si tras el fix el navegador sigue redirigiendo: **incógnito** o limpiar caché (DevTools → recargar forzado). `curl -I` (sin caché) confirma el estado real del servidor.
+- Prevención: no fijar un custom domain en Pages sin DNS válido; recordar que `curl`/incógnito evitan la caché de 301 al diagnosticar.
+
 ---
 
 ## Notas del entorno (gotchas Windows / pnpm / Node)

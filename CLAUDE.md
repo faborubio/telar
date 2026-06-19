@@ -125,5 +125,14 @@ Detalle del roadmap: **SAD §12**. Resultado de cada fase: **[AUDIT.md](AUDIT.md
 ## 7. Entorno de desarrollo conocido
 
 - OS: Windows 11. Shell primaria: PowerShell 7+ (pwsh). Bash POSIX disponible.
-- Node: v24.15.0 · pnpm: vía corepack · git: 2.51.
-- Branch por defecto: `main` (trunk-based, SAD §10.2). Sin remoto configurado todavía.
+- **Node ≥ 22.13** (lo exige pnpm 11.8; probado en v24.15) · pnpm: vía corepack (11.8.0) · git: 2.51.
+- Branch por defecto: `main` (trunk-based, SAD §10.2).
+- **Remoto:** `origin` = https://github.com/faborubio/telar (push por HTTPS con token de `gh`; el remote estaba en SSH pero no hay clave cargada aquí → se usa HTTPS).
+- Commits multi-línea: el sandbox bloquea here-strings de PowerShell; usar `git commit -F <archivo>` (escribir el mensaje a un archivo temporal y borrarlo).
+
+## 8. Enlaces vivos
+
+- **Repo:** https://github.com/faborubio/telar (público).
+- **Storybook desplegado:** https://faborubio.github.io/telar/ (deploy automático a GitHub Pages en cada push a `main`, vía `.github/workflows/storybook.yml`).
+- **CI:** `.github/workflows/ci.yml` (verify + Lighthouse). Verde. Requiere Node 22 en CI.
+- Nota Pages: el dominio de cuenta `fabianrubio.me` (NXDOMAIN) se quitó del repo `faborubio.github.io`; si un navegador aún redirige ahí, es un **301 cacheado** (limpiar caché / incógnito), no un fallo del deploy.

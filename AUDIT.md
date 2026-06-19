@@ -224,14 +224,14 @@
 
 **Verificaciones:**
 
-| Check             | Resultado                                                       |
-| ----------------- | --------------------------------------------------------------- |
-| `pnpm typecheck`  | ✅ 4/4 (cadena forms + Zod + `toTypedSchema`)                   |
-| `pnpm lint`       | ✅ 3/3, 0/0                                                     |
-| `pnpm test`       | ✅ DS **87/87** · App **7/7** (auth+users integración MSW)       |
-| `pnpm build`      | ✅ ds + app                                                     |
-| `pnpm size`       | ✅ App 86.6 kB · DS 6.7 kB (budgets 180/15)                     |
-| `build-storybook` | ✅ compila las 11 stories (incl. FormField)                     |
+| Check             | Resultado                                                  |
+| ----------------- | ---------------------------------------------------------- |
+| `pnpm typecheck`  | ✅ 4/4 (cadena forms + Zod + `toTypedSchema`)              |
+| `pnpm lint`       | ✅ 3/3, 0/0                                                |
+| `pnpm test`       | ✅ DS **87/87** · App **7/7** (auth+users integración MSW) |
+| `pnpm build`      | ✅ ds + app                                                |
+| `pnpm size`       | ✅ App 86.6 kB · DS 6.7 kB (budgets 180/15)                |
+| `build-storybook` | ✅ compila las 11 stories (incl. FormField)                |
 
 **Hallazgos y correcciones:**
 

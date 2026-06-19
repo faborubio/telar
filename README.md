@@ -87,9 +87,16 @@ telar/
 - **[DEPLOY.md](DEPLOY.md)** — build, publicación y despliegue.
 - **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** — errores conocidos y su solución.
 
+## Enlaces
+
+- **Repositorio:** https://github.com/faborubio/telar
+- **Storybook (vitrina del DS):** https://faborubio.github.io/telar/
+
 ## Estado
 
-🚧 **Fase 0 — Cimientos** en construcción. Ver roadmap en [SAD.md §12](SAD.md) y avance en [AUDIT.md](AUDIT.md).
+**Fases 0, 1 y 2 cerradas y auditadas.** DS con primitives, 8 componentes y 3 patrones (PageHeader, DataTable, FormField); app Tejido con flujos reales (listado con tabla, login con auth, detalle/edición), datos por MSW y validación con Zod. CI/CD en verde (typecheck, lint, tests, build, size budgets, Lighthouse) y Storybook desplegado.
+
+**Siguiente:** Fase 3 — Endurecimiento (E2E, visual regression, observabilidad, primer release del DS). Ver roadmap en [SAD.md §12](SAD.md) y detalle por fase en [AUDIT.md](AUDIT.md).
 
 ## Autor
 
