@@ -147,6 +147,22 @@
 - Solución: corregidos los tokens (ver changeset `a11y-dark-contrast`): `action` dark → `blue.600/700/800` (botón con texto blanco) y nuevos `color.link`/`link-hover` para texto de enlace (claro sobre oscuro).
 - Prevención: el contraste **solo se verifica de verdad en un navegador real** (E2E con cypress-axe). No asumir AA por el verde de vitest-axe. El gate de contraste vive en el E2E, no en los unit tests.
 
+## [2026-06-20] Emuladores de Firebase: "Java version before 21" / firebase ignora JAVA_HOME
+
+- Contexto: `firebase emulators:start` (Fase 4, backend con Emulator Suite) en Windows.
+- Síntoma: `Error: firebase-tools no longer supports Java version before 21. Please install a JDK at version 21 or above`. Persistía aun con `JAVA_HOME=C:\src\jdk21`.
+- Causa raíz: (a) firebase-tools 15.x exige **Java 21+** para los emuladores (Firestore/Auth); había JDK 8 (en PATH) y 17 (en `JAVA_HOME`). (b) firebase **resuelve `java` desde el PATH**, no desde `JAVA_HOME`, así que setear solo `JAVA_HOME` no basta.
+- Solución: instalar un **Temurin 21 portable** (sin admin) en `C:\src\jdk21` (convención local de JDKs) y **anteponerlo al PATH** del proceso: `$env:JAVA_HOME='C:\src\jdk21'; $env:PATH='C:\src\jdk21\bin;'+$env:PATH; firebase emulators:start …`. Con eso `java -version` reporta 21 y los emuladores arrancan.
+- Prevención: en local, exportar `C:\src\jdk21\bin` al PATH antes de `pnpm emulators`. En CI (Slice 2+) el runner ya trae un JRE moderno. Descarga del JDK: `https://api.adoptium.net/v3/binary/latest/21/ga/windows/x64/jdk/hotspot/normal/eclipse`.
+
+## [2026-06-20] Mapeo de path Functions: Hosting conserva `/api`, el proxy de dev no
+
+- Contexto: la misma Function `api` (Express) debe responder igual tras el rewrite de Hosting (`/api/** → api`) y tras el proxy de Vite en dev (modo firebase).
+- Síntoma potencial: rutas que no matchean (`/users` vs `/api/users`) según el entorno.
+- Causa raíz: con el **rewrite de Hosting** la función recibe el path COMPLETO (`/api/users`); el **emulador de Functions** invocado directo (o vía proxy con rewrite) consume el nombre de la función y entrega `/users`.
+- Solución: middleware en Express que **normaliza** quitando el prefijo `/api` opcional (`req.url.replace(/^\/api(?=\/|$)/, '')`), y rutas declaradas sin prefijo. El proxy de Vite (`vite.config.ts`, modo firebase) apunta a `…/us-central1/api` con `rewrite: p => p.replace(/^\/api/, '')`. Verificado: `/api/users` da 401/200 igual por proxy y directo.
+- Prevención: no asumir el path que recibe la función; normalizar y probar ambos caminos con `curl`.
+
 ---
 
 ## Notas del entorno (gotchas Windows / pnpm / Node)

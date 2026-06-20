@@ -5,7 +5,7 @@
 | Campo           | Valor                                                   |
 | --------------- | ------------------------------------------------------- |
 | Proyecto        | Telar — Design System en Vue 3 + app de referencia      |
-| Versión         | 1.3.0                                                   |
+| Versión         | 1.4.0                                                   |
 | Estado          | Approved for implementation                             |
 | Autor           | Fabián Rubio — Full Stack / Frontend                    |
 | Audiencia       | Equipo de ingeniería, UX, Product, evaluadores técnicos |
@@ -38,7 +38,7 @@ La app existe para una razón concreta: un Design System sin un consumidor real 
 
 ### 1.3 Fuera de alcance (scope boundaries)
 
-- Backend propio: la app consume APIs REST mockeadas (MSW) o un backend de terceros existente. El foco es frontend.
+- Backend propio: la app consume APIs REST mockeadas (MSW) o un backend de terceros existente. El foco es frontend. _(Evolucionado en Fase 4 — ADR-017: se incorpora un backend **serverless** en Firebase —Cloud Functions + Firestore + Auth—, no un servidor propio; la app sigue hablando REST y el modo `mock` se conserva.)_
 - SSR/SSG: la app es una SPA. Se documenta cómo se migraría a Nuxt si el negocio lo pidiera, pero no se implementa (ver §11, Riesgos/Roadmap).
 - i18n completo: se deja la arquitectura lista (claves, no strings hardcodeados), pero se entrega un solo idioma.
 
@@ -254,6 +254,20 @@ El DS no es "una carpeta de componentes". Es una jerarquía con responsabilidade
 **Razón:** entrega una red de regresión completa y reproducible (render + accesibilidad + pixel por componente) sin la fragilidad de baselines atados al SO de quien desarrolla. El contraste —el agujero clásico que jsdom no cubre— queda verificado en navegador real en el DS (test-runner) y en la app (E2E con cypress-axe).
 **Trade-off:** los baselines solo se (re)generan en CI (no en el Windows local); un cambio visual aprobado se "acepta" re-corriendo el workflow de snapshots. Es el precio de un diff de pixel determinista sin Docker local ni un servicio externo de pago.
 
+### ADR-017 — Backend serverless en Firebase (Cloud Functions REST + Firestore), con modo dual `mock | firebase`
+
+**Contexto:** §1.3 dejó el backend fuera de alcance (la app consumía MSW). La Fase 4 (productivización en GCP) lo incorpora: datos y auth reales. El riesgo es romper la pirámide de tests/E2E construida sobre MSW.
+**Decisión:** el backend es **Cloud Functions** exponiendo una **API REST** (Express, una función `api`) sobre **Firestore**, con Firebase **Hosting** reescribiendo `/api/**` → función. La app conserva su contrato REST (`fetch('/api/...')`), así la **capa de services (SAD §6) es la costura**: un selector `BACKEND` (`mock | firebase`, por env) elige el origen sin tocar páginas ni DS. `mock` = MSW + auth simulada (tests, E2E, dev por defecto); `firebase` = Functions+Firestore+Auth reales (dev contra emuladores y prod). En dev `firebase`, Vite proxya `/api` al emulador de Functions.
+**Razón:** entrega un backend real sin reescribir la app ni sacrificar la suite existente (87 DS + 11 app + 12 E2E siguen en verde en modo mock). Demuestra el payoff de los services desacoplados. El desarrollo es 100% local con el **Emulator Suite** (Firestore/Auth/Functions), sin nube ni costo.
+**Trade-off:** se mantienen dos implementaciones de datos/auth (mock y firebase) y un emulador que exige **JDK 21+** (ver §3/TROUBLESHOOTING). Aceptable: el coste es acotado y la doble vía es justamente lo que preserva la testabilidad. Evoluciona §1.3 (el backend deja de estar fuera de alcance; sigue siendo serverless, no un servidor propio).
+
+### ADR-018 — Autenticación real con Firebase Auth; el backend verifica el ID token
+
+**Contexto:** el login simulado (token fake en MSW) no es auth real. La Fase 4 pide identidad de verdad.
+**Decisión:** en modo `firebase`, la app usa **Firebase Auth** (cliente: `signInWithEmailAndPassword`); la API protege cada endpoint verificando el **ID token** (Bearer) con el Admin SDK (`verifyIdToken`). El rol/estado de dominio (que no viven en Firebase Auth) se leen del backend (`/api/users/:uid`). En modo `mock` se conserva el flujo REST `/api/login` para no romper tests/E2E.
+**Razón:** delega la maquinaria de auth (hashing, sesiones, tokens) en una pieza probada en vez de reinventarla, coherente con el espíritu de ADR-008/010 (no reescribir lo headless/resuelto). La verificación en el backend hace que `/api/**` sea genuinamente privado.
+**Trade-off:** acopla el modo `firebase` al SDK de Firebase Auth; mitigado por la capa de services (el resto de la app no lo conoce) y por mantener el modo `mock` como alternativa.
+
 ---
 
 ## 6. Estrategia de estado y datos (en la app)
@@ -421,6 +435,7 @@ Cada fase termina con algo demostrable y testeado. No hay una fase "de testing a
 | 1.1.0   | 2026-06-18 | Nombre del proyecto definido (Telar / Tejido). Nuevas decisiones de fundación: ADR-008 (Reka UI headless), ADR-009 (tokens en tres niveles + Style Dictionary, refina ADR-002), ADR-010 (TanStack Table + vee-validate/Zod), ADR-011 (CSS @layer + `:where()`), ADR-012 (shallowRef + virtualización). Capa headless agregada al modelo de capas (§4.2). Tácticas de performance ampliadas (container queries, anti-FOUC). CI con caché de tareas afectadas (Turborepo) y story-as-test. Riesgos de dependencia (Reka) y virtualización añadidos. |
 | 1.2.0   | 2026-06-19 | Decisiones surgidas durante la implementación (Fases 0–1): ADR-013 (DoD ejecutable — contract tests + sin colores mágicos + umbral de cobertura), ADR-014 (Storybook como documentación viva y base de visual regression), ADR-015 (presupuestos de performance verificados en CI con size-limit + Lighthouse CI). Reflejan que el SAD es vivo: lo construido retroalimenta lo documentado.                                                                                                                                                       |
 | 1.3.0   | 2026-06-19 | Fase 3 (endurecimiento): ADR-016 (regresión visual como _story-as-test_ con test-runner + axe; diff de pixel diferido por determinismo de render). E2E (Cypress + cypress-axe) y observabilidad (capa vendor-agnóstica: errores + Web Vitals + versión DS/app embebida, §10.3) implementados; el E2E con axe real destapó y se corrigió contraste AA roto en tema oscuro que jsdom no veía.                                                                                                                                                |
+| 1.4.0   | 2026-06-20 | Fase 4 (productivización en GCP/Firebase), Slice 1: ADR-017 (backend serverless Cloud Functions REST + Firestore, con modo dual `mock\|firebase` por la capa de services; evoluciona §1.3) y ADR-018 (auth real con Firebase Auth, backend verifica el ID token). Desarrollo 100% local con el Emulator Suite (requiere JDK 21+).                                                                                                                                                                                                  |
 
 ---
 

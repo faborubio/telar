@@ -385,3 +385,54 @@
 **Gates activos al cierre:** typecheck · lint (incl. regla `ds ✗→ app`) · unit/component (DS 87 + App 11) · cobertura con umbral · DoD ejecutable (contract tests) · size-limit · Lighthouse CI · **E2E (Cypress)** · **regresión visual (test-runner: smoke + axe + diff de pixel)** · a11y (axe en unit + E2E + test-runner). **Deuda restante** (no bloqueante): transport de observabilidad real (config de despliegue) y publish del DS (registry al extraer). El proyecto Telar cumple su tesis: un DS versionado y un app de referencia que lo estresa, endurecidos con gates reproducibles de punta a punta.
 
 > **Nota (2026-06-20):** tras el cierre se completó el **diff de pixel** de la regresión visual (ya no es deuda; ver adenda en Slice 2 y ADR-016 actualizado).
+
+## Fase 4 — Productivización en GCP/Firebase
+
+🔶 **En curso**, en slices. Plan: Slice 1 — backend real con emuladores; Slice 2 — Hosting + deploy CI; Slice 3 — observabilidad real (Cloud Logging); Slice 4 (opcional) — publish del DS. Evoluciona §1.3 (ADR-017/018).
+
+### Slice 1 — Backend real (Firestore + Cloud Functions + Firebase Auth) con emuladores
+
+**Estado:** ✅ auditado · **Fecha:** 2026-06-20.
+
+**Objetivo:** reemplazar MSW por un backend Firebase real (datos + auth), desarrollado 100% local contra el Emulator Suite, **sin romper** la suite de tests/E2E existente.
+
+**Entregado (backend — `functions/`):**
+
+- **API REST** en una Cloud Function (`api`, Express) sobre **Firestore**: `GET/PUT /users`, `GET /users/:id`. Mismo contrato REST que servía MSW (ADR-017).
+- **Auth real (ADR-018):** cada endpoint exige el **ID token de Firebase Auth** (Bearer), verificado con el Admin SDK. El path se normaliza para servir igual tras el rewrite de Hosting o el proxy de dev.
+- **Firestore rules**: el cliente no accede directo; todo pasa por Functions (Admin SDK). **Seed** idempotente (Firestore + usuarios de Auth con la clave demo).
+- `firebase.json` (functions + hosting con rewrite `/api/** → api` + emuladores), `.firebaserc` (`demo-telar`, offline), `firestore.rules/indexes`.
+
+**Entregado (app — modo dual `mock | firebase`, ADR-017):**
+
+- Selector `BACKEND` por env (`src/config.ts`). **Mock** (MSW + auth fake) = tests/E2E/dev por defecto; **firebase** (Firestore/Functions + Firebase Auth) = `dev:firebase` (proxy Vite → emulador) y prod.
+- `services/auth.ts` abstrae login/logout/getToken/restoreSession en ambos backends; `services/users.ts` adjunta el Bearer (MSW lo ignora, Functions lo verifica). `firebase.ts` (SDK cliente, emulador de Auth en dev). `main.ts`: MSW solo en mock + restauración de sesión antes de montar.
+- La capa de services es la **única** que cambió: páginas, DS, stores (interfaz) y tests intactos.
+
+**Verificaciones:**
+
+| Check                         | Resultado                                                                 |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| Emuladores (JDK 21)           | ✅ Firestore+Auth+Functions ready (la función `api` carga)                |
+| Backend en vivo (curl)        | ✅ `/users` sin token → **401**; con ID token → **200 + 12**; `/users/3` ok |
+| Modo firebase vía proxy Vite  | ✅ `/api/users` (proxy→Function) 401/200 correcto                          |
+| `pnpm test` (modo mock)       | ✅ App **11/11** (auth+users+observabilidad) — suite intacta              |
+| `pnpm typecheck`              | ✅ 5/5 (incluye `@telar/functions`)                                       |
+| `pnpm lint`                   | ✅ 4/4, 0/0 (limpiados 3 `eslint-disable` latentes)                       |
+| `pnpm build` · `pnpm size`    | ✅ App 88.7 kB (firebase es lazy, no infla el inicial) · DS 6.7 kB        |
+
+**Hallazgos y correcciones:**
+
+1. **Emuladores exigen Java 21+** (había JDK 8 y 17). Resuelto con un **Temurin 21 portable** en `C:\src\jdk21` (sin admin, siguiendo la convención local de JDKs). `firebase` usa el `java` del **PATH**, no `JAVA_HOME` → hay que anteponer `C:\src\jdk21\bin`. Registrado en TROUBLESHOOTING.
+2. **Build scripts de pnpm** (`protobufjs`, `@firebase/util`) aprobados en `pnpm-workspace.yaml`.
+3. **3 `eslint-disable no-console` latentes** (transport.ts, cypress.config.ts) que `reportUnusedDisableDirectives` marcaba como warning: eliminados (no hay regla `no-console`).
+4. **turbo.json**: añadido `lib/**` a outputs de `build` (functions) para que turbo cachee y no avise.
+
+**Deuda aceptada:**
+
+- **Deploy real** (Hosting + Functions) y **bundling de Functions con pnpm** → Slice 2 (necesita el proyecto Firebase + service account del usuario).
+- **E2E sigue en modo mock** (MSW): un E2E contra el backend Firebase real es candidato a Slice 2/3 (más setup: emuladores + seed en CI).
+- **JDK 21 en PATH** es un paso manual para correr emuladores en local (documentado).
+- **Reglas de Firestore** deniegan todo acceso directo del cliente (correcto hoy: todo pasa por Functions); si en el futuro el cliente leyera Firestore directo, habría que abrirlas con cuidado.
+
+**Veredicto:** ✅ **Aprobado.** Backend real (Functions + Firestore + Firebase Auth) validado en vivo sobre el Emulator Suite, con la app consumiéndolo en modo `firebase` y la suite existente intacta en modo `mock`. El desacople de services (SAD §6) sostuvo el cambio sin tocar páginas ni DS. Listo para **Slice 2** (Hosting + deploy en GCP).

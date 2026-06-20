@@ -24,6 +24,8 @@
     "e2e": "pnpm -C packages/app e2e",
     "e2e:open": "pnpm -C packages/app e2e:open",
     "changeset": "changeset",
+    "emulators": "firebase emulators:start --only firestore,auth,functions --project demo-telar",
+    "emulators:seed": "pnpm -C functions seed",
     "version-packages": "changeset version",
     "release": "turbo run build --filter=@telar/ds && changeset publish"
   },

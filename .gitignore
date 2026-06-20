@@ -36,3 +36,11 @@ packages/ds/__image_snapshots__/__diff_output__/
 *.log
 npm-debug.log*
 pnpm-debug.log*
+
+# Firebase
+functions/lib/
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+.runtimeconfig.json

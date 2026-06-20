@@ -1,0 +1,12 @@
+rules_version = '2';
+
+// Reglas de Firestore. El acceso a datos pasa SIEMPRE por Cloud Functions (Admin SDK,
+// que saltea estas reglas): el cliente no lee/escribe Firestore directo. Por eso aquí se
+// deniega todo acceso directo del cliente (defensa en profundidad).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

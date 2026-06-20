@@ -17,6 +17,8 @@ export default tseslint.config(
       'packages/ds/src/tokens/generated/**',
       // Worker de MSW: código generado por `msw init`, no fuente del proyecto.
       '**/public/mockServiceWorker.js',
+      // Salida compilada de las Cloud Functions.
+      'functions/lib/**',
     ],
   },
 

@@ -74,9 +74,35 @@ El Storybook del DS se publica automáticamente en **GitHub Pages** en cada push
 
 ---
 
+## 4bis. Backend Firebase + dev local con emuladores (Fase 4 — ADR-017/018)
+
+El backend real vive en `functions/` (Cloud Functions REST + Firestore + Firebase Auth). La app tiene **modo dual** (`BACKEND`, por env): `mock` (MSW, por defecto) o `firebase`.
+
+**Requisito:** **JDK 21+** para los emuladores. En este equipo hay un Temurin 21 portable en `C:\src\jdk21`; firebase usa el `java` del PATH, así que anteponerlo:
+
+```bash
+# PowerShell, antes de levantar emuladores:
+$env:JAVA_HOME='C:\src\jdk21'; $env:PATH='C:\src\jdk21\bin;'+$env:PATH
+```
+
+**Flujo dev contra el backend real (3 terminales o background):**
+
+```bash
+pnpm -C functions build          # compila las Functions (tsc → lib/)
+pnpm emulators                   # Firestore + Auth + Functions (demo-telar, offline)
+pnpm emulators:seed              # siembra 12 usuarios (Firestore + Auth); clave: telar123
+pnpm -C packages/app dev:firebase  # app en modo firebase (Vite proxya /api → Function)
+```
+
+- En `mock` (por defecto) nada de esto hace falta: MSW intercepta `/api/**` en el navegador, y tests/E2E corren igual.
+- El proyecto `demo-telar` es **offline** (prefijo `demo-`): los emuladores nunca tocan la nube ni cobran.
+- **Deploy real** (Hosting + Functions a un proyecto Firebase) y su workflow de CI con service account = **Slice 2** (requiere el proyecto + credenciales del usuario).
+
+---
+
 ## 5. Despliegue de la app (Tejido)
 
-> Pendiente de activar (Fase 3). La app es una SPA estática: cualquier hosting de estáticos con fallback SPA (todas las rutas → `index.html`) sirve. Podría añadirse un workflow análogo al de Storybook.
+> Pendiente de activar (Fase 4 / Slice 2). La app es una SPA estática: irá a **Firebase Hosting** (con rewrite `/api/** → Functions`). Hasta entonces, MSW (modo mock) o los emuladores (modo firebase) cubren el dev.
 
 Checklist de release de la app (se completará):
 

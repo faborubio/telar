@@ -6,14 +6,17 @@ import './styles/app.css'
 import App from './App.vue'
 import { router } from './router'
 import { initObservability } from './observability'
+import { BACKEND } from './config'
+import { useAuthStore } from './stores/auth'
 
 // Observabilidad (SAD §10.3): captura de errores + Web Vitals reales, con la versión
 // DS/app embebida. Se inicia antes de montar para no perder errores tempranos.
 initObservability()
 
-// En desarrollo, MSW intercepta la red antes de montar la app (ADR-006).
+// En modo mock + dev, MSW intercepta la red antes de montar (ADR-006). En modo firebase
+// NO se arranca: la red va al backend real (Functions emulador en dev / Hosting en prod).
 async function enableMocking(): Promise<void> {
-  if (!import.meta.env.DEV) return
+  if (!import.meta.env.DEV || BACKEND !== 'mock') return
   const { worker } = await import('./mocks/browser')
   // Exponemos MSW en window para que los tests E2E (Cypress) sobreescriban handlers en
   // runtime (worker.use). cy.intercept NO puede interceptar lo que el Service Worker ya
@@ -23,6 +26,14 @@ async function enableMocking(): Promise<void> {
   await worker.start({ onUnhandledRequest: 'bypass' })
 }
 
-void enableMocking().then(() => {
-  createApp(App).use(createPinia()).use(router).mount('#app')
-})
+async function bootstrap(): Promise<void> {
+  await enableMocking()
+  const pinia = createPinia()
+  const app = createApp(App).use(pinia).use(router)
+  // Restaura la sesión persistida (firebase) antes de montar, para que el guard de ruta
+  // no redirija a /login durante la rehidratación. En mock es un no-op.
+  await useAuthStore(pinia).init()
+  app.mount('#app')
+}
+
+void bootstrap()

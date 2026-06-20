@@ -14,12 +14,27 @@ const appVersion = version('./package.json')
 const dsVersion = version('../ds/package.json')
 
 // Tejido es una SPA (SAD §1.3): build estático servible desde cualquier CDN.
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [vue()],
   define: {
     __APP_VERSION__: JSON.stringify(appVersion),
     __DS_VERSION__: JSON.stringify(dsVersion),
   },
+  // En modo `firebase` (dev contra emuladores), /api/** se reenvía a la Function `api`
+  // (ADR-017). En prod ese ruteo lo hace Firebase Hosting (rewrites). En modo mock no hay
+  // proxy: MSW intercepta /api/** en el navegador.
+  server:
+    mode === 'firebase'
+      ? {
+          proxy: {
+            '/api': {
+              target: 'http://127.0.0.1:5001/demo-telar/us-central1/api',
+              changeOrigin: true,
+              rewrite: (path) => path.replace(/^\/api/, ''),
+            },
+          },
+        }
+      : undefined,
   build: {
     target: 'es2022',
     sourcemap: true,
@@ -30,4 +45,4 @@ export default defineConfig({
     setupFiles: ['src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.ts'],
   },
-})
+}))

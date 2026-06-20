@@ -1,21 +1,26 @@
 packages:
   - 'packages/*'
+  - 'functions'
 
 # Dependencias cuyo build script se permite ejecutar (esbuild necesita su binario, etc.).
 onlyBuiltDependencies:
   - '@bundled-es-modules/glob'
+  - '@firebase/util'
   - '@swc/core'
   - cypress
   - esbuild
   - msw
+  - protobufjs
   - style-dictionary
   - vue-demi
 
 allowBuilds:
   '@bundled-es-modules/glob': true
+  '@firebase/util': true
   '@swc/core': true
   cypress: true
   esbuild: true
   msw: true
+  protobufjs: true
   style-dictionary: true
   vue-demi: true

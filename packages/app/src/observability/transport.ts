@@ -7,7 +7,6 @@ export function createConsoleTransport(): ObservabilityTransport {
   return {
     send(event) {
       const label = event.type === 'error' ? 'obs:error' : 'obs:metric'
-      // eslint-disable-next-line no-console
       console.info(`[${label}]`, event)
     },
   }

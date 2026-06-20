@@ -56,6 +56,8 @@ telar/
 ├─ packages/
 │  ├─ ds/      # Telar — librería (tokens, primitives, components, composables, directives)
 │  └─ app/     # Tejido — SPA de referencia (pages, features, stores, services, router)
+├─ functions/          # Backend serverless (Cloud Functions REST + Firestore + Auth) — Fase 4
+├─ firebase.json · .firebaserc · firestore.rules/indexes   # config Firebase (emuladores+hosting)
 ├─ .github/workflows/   # CI/CD
 ├─ .changeset/          # Changesets (versionado del DS)
 ├─ turbo.json           # pipeline de tareas
@@ -84,6 +86,9 @@ Detalle de capas del DS y flujo de datos: **SAD §4 y §6**.
 | `pnpm lighthouse`               | Lighthouse CI sobre la app construida (corre en CI).            |
 | `pnpm e2e`                      | E2E (Cypress) de flujos críticos sobre el server de dev + MSW. |
 | `pnpm -C packages/ds test-storybook:ci` | Regresión visual: test-runner (smoke + axe por story).  |
+| `pnpm emulators`                | Emulator Suite (Firestore+Auth+Functions). **Requiere JDK 21 en PATH.** |
+| `pnpm emulators:seed`           | Siembra el emulador (Firestore + usuarios de Auth, clave `telar123`). |
+| `pnpm -C packages/app dev:firebase` | App en modo backend real (Firebase), contra los emuladores.       |
 | `pnpm changeset`                | Registra un cambio para versionar el DS (Changesets).           |
 | `pnpm -C packages/ds storybook` | Storybook del DS en dev (:6006).                                |
 | `pnpm -C packages/app dev`      | Forma explícita de correr un paquete concreto.                  |
@@ -122,6 +127,8 @@ Detalle de capas del DS y flujo de datos: **SAD §4 y §6**.
   - **Slice 1 — E2E (Cypress):** ✅ **cerrado (2026-06-19).** Cypress 14 + cypress-axe sobre el server de dev con MSW. **4 specs / 12 tests en verde** (login+guard, tabla filtro/orden/paginación, detalle/edición+Toast+persistencia, error de red con override de MSW vía `window`). Comandos `pnpm e2e` / `pnpm e2e:open`; job `e2e` en CI (action oficial de Cypress). Selección por rol/label accesible (SAD §7). **El axe en navegador real destapó contraste AA roto en tema oscuro** (jsdom no lo ve): botón primario y enlaces; corregido en tokens (`action` dark `blue.600/700/800` + nuevos `color.link`/`link-hover`), changeset `a11y-dark-contrast`. Gotcha local: limpiar `ELECTRON_RUN_AS_NODE` antes de Cypress (ver TROUBLESHOOTING). Detalle en AUDIT.md → Fase 3 / Slice 1.
   - **Slice 2 — Visual regression + observabilidad:** ✅ **cerrado (2026-06-19; pixel-diff añadido 2026-06-20).** **Regresión visual** (ADR-016): `@storybook/test-runner` corre cada story en Chromium con 3 capas — smoke "story-as-test" + axe por story + **diff de pixel** (`jest-image-snapshot`, SSIM) → **31/31, 0 violaciones**; `pnpm -C packages/ds test-storybook:ci`, job `visual` en CI. **Pixel determinista** fijando el entorno: job en `ubuntu-24.04` con `VISUAL_SNAPSHOTS=1` diffea contra baselines commiteados; los baselines se siembran desde CI con el workflow manual `visual-snapshots.yml` (no en local Windows; el snapshot se gatea por env). **Observabilidad** (SAD §10.3): módulo vendor-agnóstico `app/src/observability/` (errores + Web Vitals + versión DS/app embebida vía Vite `define`), transport desacoplado (consola hoy, DSN real al desplegar), `initObservability()` en `main.ts`. Deps: DS `@storybook/test-runner`/`axe-playwright`; app `web-vitals`. Detalle en AUDIT.md → Fase 3 / Slice 2.
   - **Slice 3 — Primer release del DS:** ✅ **cerrado (2026-06-20).** **`@telar/ds@0.1.1`** (`changeset version` consumió el changeset de a11y → patch + CHANGELOG). Workflow `release.yml` (Changesets en push a `main`: PR "Version Packages"); **publish gateado** (DS vía `workspace:*`; habilitar = descomentar `publish: pnpm release` + `NPM_TOKEN`, que crea tag + GitHub Release). Detalle en AUDIT.md → Fase 3 / Slice 3.
+- **Fase 4 — Productivización en GCP/Firebase:** 🔶 **en curso**, en slices. Plan: Slice 1 — backend real (emuladores); Slice 2 — Hosting + deploy CI; Slice 3 — observabilidad real (Cloud Logging); Slice 4 (opcional) — publish del DS. Evoluciona §1.3 (ADR-017/018).
+  - **Slice 1 — Backend real con emuladores:** ✅ **cerrado (2026-06-20).** **Cloud Functions** (Express, función `api`) exponiendo API REST sobre **Firestore**, con **Firebase Auth** real (cada endpoint verifica el ID token). La app pasa a **modo dual `mock | firebase`** (selector `BACKEND` por env, costura en la capa de services SAD §6): `mock` (MSW + auth fake) = tests/E2E/dev por defecto; `firebase` (`pnpm -C packages/app dev:firebase`) = Functions+Firestore+Auth reales vía emuladores. **Validado en vivo** (curl: 401 sin token, 200+12 con token; proxy de Vite ok) con la suite existente **intacta** (app 11/11 en mock). Backend en `functions/` (paquete pnpm), config Firebase en la raíz. **Requiere JDK 21+** para los emuladores (ver §7 y TROUBLESHOOTING). Detalle en AUDIT.md → Fase 4 / Slice 1.
 
 Detalle del roadmap: **SAD §12**. Resultado de cada fase: **[AUDIT.md](AUDIT.md)**.
 
@@ -131,6 +138,7 @@ Detalle del roadmap: **SAD §12**. Resultado de cada fase: **[AUDIT.md](AUDIT.md
 
 - OS: Windows 11. Shell primaria: PowerShell 7+ (pwsh). Bash POSIX disponible.
 - **Node ≥ 22.13** (lo exige pnpm 11.8; probado en v24.15) · pnpm: vía corepack (11.8.0) · git: 2.51.
+- **Emuladores de Firebase (Fase 4): requieren JDK 21+.** Hay un Temurin 21 portable en `C:\src\jdk21`; firebase usa el `java` del **PATH**, así que anteponer `C:\src\jdk21\bin` antes de `pnpm emulators` (ver TROUBLESHOOTING). `firebase-tools` está instalado global.
 - Branch por defecto: `main` (trunk-based, SAD §10.2).
 - **Remoto:** `origin` = https://github.com/faborubio/telar (push por HTTPS con token de `gh`; el remote estaba en SSH pero no hay clave cargada aquí → se usa HTTPS).
 - Commits multi-línea: el sandbox bloquea here-strings de PowerShell; usar `git commit -F <archivo>` (escribir el mensaje a un archivo temporal y borrarlo).

@@ -13,12 +13,10 @@ export default defineConfig({
     setupNodeEvents(on) {
       on('task', {
         log(message: string) {
-          // eslint-disable-next-line no-console
           console.log(message)
           return null
         },
         table(rows: unknown[]) {
-          // eslint-disable-next-line no-console
           console.table(rows)
           return null
         },

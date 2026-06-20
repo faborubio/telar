@@ -7,7 +7,7 @@
     },
     "build": {
       "dependsOn": ["^build", "tokens"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", "lib/**"]
     },
     "typecheck": {
       "dependsOn": ["^build", "tokens"]
