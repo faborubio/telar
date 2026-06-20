@@ -82,6 +82,8 @@ Detalle de capas del DS y flujo de datos: **SAD §4 y §6**.
 | `pnpm test`                     | Vitest (unit + component + **contrato/DoD**) en ambos paquetes. |
 | `pnpm size`                     | Presupuestos de bundle (`size-limit`); rompe si excede budget.  |
 | `pnpm lighthouse`               | Lighthouse CI sobre la app construida (corre en CI).            |
+| `pnpm e2e`                      | E2E (Cypress) de flujos críticos sobre el server de dev + MSW. |
+| `pnpm -C packages/ds test-storybook:ci` | Regresión visual: test-runner (smoke + axe por story).  |
 | `pnpm changeset`                | Registra un cambio para versionar el DS (Changesets).           |
 | `pnpm -C packages/ds storybook` | Storybook del DS en dev (:6006).                                |
 | `pnpm -C packages/app dev`      | Forma explícita de correr un paquete concreto.                  |
@@ -116,7 +118,10 @@ Detalle de capas del DS y flujo de datos: **SAD §4 y §6**.
   - **Slice 2:** FormField (bridge vee-validate↔Input, vee-validate como **peer dep**). App: login con auth + guard de ruta, detalle/edición (`/users/:id`) con Zod (`toTypedSchema`) + Toast de éxito. ToastProvider en App.vue.
   - **Patrones del DS:** PageHeader, DataTable, FormField (en `src/patterns/<Name>/`, mismo trío .vue+.stories+.test; gates de DoD los cubren).
   - **App:** flujos reales (listado, login, detalle) con estados loading/empty/error, MSW en `src/mocks/` (handlers compartidos dev+test, worker en `public/`), Zod en `src/schemas/`, stores `users`/`auth`/`ui`. Deps directas: `@tanstack/vue-table`, `vee-validate`, `zod`, `@vee-validate/zod`. Credenciales demo: cualquier email del seed + `telar123`.
-- **Fase 3 — Endurecimiento:** ⬜ siguiente. E2E (Cypress), visual regression, observabilidad, primer release del DS. (Lighthouse CI + size budgets ya activos desde Fase 1).
+- **Fase 3 — Endurecimiento:** ✅ **cerrada (2026-06-20)**, en 3 slices. (Lighthouse CI + size budgets ya activos desde Fase 1).
+  - **Slice 1 — E2E (Cypress):** ✅ **cerrado (2026-06-19).** Cypress 14 + cypress-axe sobre el server de dev con MSW. **4 specs / 12 tests en verde** (login+guard, tabla filtro/orden/paginación, detalle/edición+Toast+persistencia, error de red con override de MSW vía `window`). Comandos `pnpm e2e` / `pnpm e2e:open`; job `e2e` en CI (action oficial de Cypress). Selección por rol/label accesible (SAD §7). **El axe en navegador real destapó contraste AA roto en tema oscuro** (jsdom no lo ve): botón primario y enlaces; corregido en tokens (`action` dark `blue.600/700/800` + nuevos `color.link`/`link-hover`), changeset `a11y-dark-contrast`. Gotcha local: limpiar `ELECTRON_RUN_AS_NODE` antes de Cypress (ver TROUBLESHOOTING). Detalle en AUDIT.md → Fase 3 / Slice 1.
+  - **Slice 2 — Visual regression + observabilidad:** ✅ **cerrado (2026-06-19).** **Regresión visual** (ADR-016): `@storybook/test-runner` corre cada story en Chromium (smoke "story-as-test" + axe por story) → **31/31, 0 violaciones**; `pnpm -C packages/ds test-storybook:ci`, job `visual` en CI; diff de **pixel diferido** (determinismo de render Windows≠Linux → Docker/Chromatic). **Observabilidad** (SAD §10.3): módulo vendor-agnóstico `app/src/observability/` (errores + Web Vitals + versión DS/app embebida vía Vite `define`), transport desacoplado (consola hoy, DSN real al desplegar), `initObservability()` en `main.ts`. Deps: DS `@storybook/test-runner`/`axe-playwright`; app `web-vitals`. Detalle en AUDIT.md → Fase 3 / Slice 2.
+  - **Slice 3 — Primer release del DS:** ✅ **cerrado (2026-06-20).** **`@telar/ds@0.1.1`** (`changeset version` consumió el changeset de a11y → patch + CHANGELOG). Workflow `release.yml` (Changesets en push a `main`: PR "Version Packages"); **publish gateado** (DS vía `workspace:*`; habilitar = descomentar `publish: pnpm release` + `NPM_TOKEN`, que crea tag + GitHub Release). Detalle en AUDIT.md → Fase 3 / Slice 3.
 
 Detalle del roadmap: **SAD §12**. Resultado de cada fase: **[AUDIT.md](AUDIT.md)**.
 
@@ -134,5 +139,5 @@ Detalle del roadmap: **SAD §12**. Resultado de cada fase: **[AUDIT.md](AUDIT.md
 
 - **Repo:** https://github.com/faborubio/telar (público).
 - **Storybook desplegado:** https://faborubio.github.io/telar/ (deploy automático a GitHub Pages en cada push a `main`, vía `.github/workflows/storybook.yml`).
-- **CI:** `.github/workflows/ci.yml` (verify + Lighthouse). Verde. Requiere Node 22 en CI.
+- **CI:** `.github/workflows/ci.yml` (verify + Lighthouse + **E2E Cypress** + **regresión visual**). Verde. Requiere Node 22 en CI. Release del DS vía `.github/workflows/release.yml` (Changesets; publish gateado).
 - Nota Pages: el dominio de cuenta `fabianrubio.me` (NXDOMAIN) se quitó del repo `faborubio.github.io`; si un navegador aún redirige ahí, es un **301 cacheado** (limpiar caché / incógnito), no un fallo del deploy.

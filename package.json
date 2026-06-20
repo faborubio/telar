@@ -21,8 +21,11 @@
     "format:check": "prettier --check \"**/*.{ts,vue,json,md}\"",
     "size": "size-limit",
     "lighthouse": "lhci autorun",
+    "e2e": "pnpm -C packages/app e2e",
+    "e2e:open": "pnpm -C packages/app e2e:open",
     "changeset": "changeset",
-    "version-packages": "changeset version"
+    "version-packages": "changeset version",
+    "release": "turbo run build --filter=@telar/ds && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.0",

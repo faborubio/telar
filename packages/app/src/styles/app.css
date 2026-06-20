@@ -14,4 +14,23 @@
     margin-inline: auto;
     padding: var(--space-6);
   }
+
+  /* Enlaces de la app (nav + acciones de tabla). Sin esto, los <a>/RouterLink usan el
+     azul por defecto del navegador, que no cumple contraste AA en tema oscuro (SAD §8).
+     El color de enlace es un token del DS (claro sobre fondo oscuro / oscuro sobre claro). */
+  a {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--color-link-hover);
+    text-decoration: underline;
+  }
+
+  a:focus-visible {
+    outline: var(--border-width-thick) solid var(--color-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
 }

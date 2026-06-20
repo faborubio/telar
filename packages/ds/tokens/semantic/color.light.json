@@ -21,6 +21,9 @@
     "action-active": { "value": "{color.blue.800}" },
     "action-subtle": { "value": "{color.blue.50}" },
 
+    "link": { "value": "{color.blue.700}" },
+    "link-hover": { "value": "{color.blue.800}" },
+
     "focus-ring": { "value": "{color.blue.500}" },
 
     "danger": { "value": "{color.red.600}" },

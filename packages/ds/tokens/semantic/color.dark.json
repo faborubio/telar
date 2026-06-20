@@ -16,10 +16,13 @@
     "text-subtle": { "value": "{color.gray.500}" },
     "text-on-action": { "value": "{color.white}" },
 
-    "action": { "value": "{color.blue.500}" },
-    "action-hover": { "value": "{color.blue.400}" },
-    "action-active": { "value": "{color.blue.300}" },
+    "action": { "value": "{color.blue.600}" },
+    "action-hover": { "value": "{color.blue.700}" },
+    "action-active": { "value": "{color.blue.800}" },
     "action-subtle": { "value": "{color.gray.800}" },
+
+    "link": { "value": "{color.blue.400}" },
+    "link-hover": { "value": "{color.blue.300}" },
 
     "focus-ring": { "value": "{color.blue.400}" },
 

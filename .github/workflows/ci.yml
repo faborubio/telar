@@ -72,3 +72,70 @@ jobs:
 
       - name: Run Lighthouse CI
         run: pnpm lighthouse
+
+  e2e:
+    name: E2E (Cypress · flujos críticos)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # La app en dev importa @telar/ds desde dist; tokens + build del DS son requisito.
+      - name: Generate tokens
+        run: pnpm tokens
+
+      - name: Build (DS library para que la app dev lo resuelva)
+        run: pnpm build
+
+      # La action oficial gestiona Xvfb y la caché del binario de Cypress.
+      # install:false → las deps ya se instalaron con pnpm (frozen-lockfile).
+      - name: Cypress run (sobre el server de dev con MSW)
+        uses: cypress-io/github-action@v6
+        with:
+          install: false
+          working-directory: packages/app
+          start: pnpm dev
+          wait-on: 'http://localhost:5173'
+          wait-on-timeout: 120
+
+  visual:
+    name: Visual regression (Storybook test-runner · story-as-test + axe)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate tokens
+        run: pnpm tokens
+
+      # El test-runner monta cada story en Chromium (Playwright): smoke + axe por story.
+      - name: Install Playwright (chromium + deps de sistema)
+        run: pnpm -C packages/ds exec playwright install chromium --with-deps
+
+      - name: Build Storybook
+        run: pnpm -C packages/ds build-storybook
+
+      - name: Run Storybook test-runner
+        run: pnpm -C packages/ds test-storybook:ci

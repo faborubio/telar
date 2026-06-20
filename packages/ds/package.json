@@ -1,6 +1,6 @@
 {
   "name": "@telar/ds",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Telar — Design System en Vue 3 (tokens, primitives, components, patterns).",
   "type": "module",
   "license": "UNLICENSED",
@@ -31,7 +31,9 @@
     "lint": "eslint .",
     "test": "vitest run --coverage",
     "storybook": "storybook dev -p 6006 --no-open",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "test-storybook": "test-storybook",
+    "test-storybook:ci": "concurrently -k -s first -n SB,TEST \"http-server storybook-static --port 6006 --silent\" \"wait-on tcp:127.0.0.1:6006 && test-storybook --url http://127.0.0.1:6006\""
   },
   "peerDependencies": {
     "reka-ui": "^2.0.0",
@@ -41,9 +43,14 @@
   "devDependencies": {
     "@storybook/addon-a11y": "^8.5.0",
     "@storybook/addon-essentials": "^8.5.0",
+    "@storybook/test-runner": "^0.21.0",
     "@storybook/vue3": "^8.5.0",
     "@storybook/vue3-vite": "^8.5.0",
     "@testing-library/user-event": "^14.5.2",
+    "axe-playwright": "^2.0.3",
+    "concurrently": "^9.1.0",
+    "http-server": "^14.1.1",
+    "wait-on": "^8.0.1",
     "@testing-library/vue": "^8.1.0",
     "@vitejs/plugin-vue": "^5.2.0",
     "@vitest/coverage-v8": "^2.1.0",

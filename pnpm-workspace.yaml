@@ -4,6 +4,8 @@ packages:
 # Dependencias cuyo build script se permite ejecutar (esbuild necesita su binario, etc.).
 onlyBuiltDependencies:
   - '@bundled-es-modules/glob'
+  - '@swc/core'
+  - cypress
   - esbuild
   - msw
   - style-dictionary
@@ -11,6 +13,8 @@ onlyBuiltDependencies:
 
 allowBuilds:
   '@bundled-es-modules/glob': true
+  '@swc/core': true
+  cypress: true
   esbuild: true
   msw: true
   style-dictionary: true

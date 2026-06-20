@@ -5,7 +5,7 @@
 | Campo           | Valor                                                   |
 | --------------- | ------------------------------------------------------- |
 | Proyecto        | Telar — Design System en Vue 3 + app de referencia      |
-| Versión         | 1.2.0                                                   |
+| Versión         | 1.3.0                                                   |
 | Estado          | Approved for implementation                             |
 | Autor           | Fabián Rubio — Full Stack / Frontend                    |
 | Audiencia       | Equipo de ingeniería, UX, Product, evaluadores técnicos |
@@ -247,6 +247,13 @@ El DS no es "una carpeta de componentes". Es una jerarquía con responsabilidade
 **Razón:** convierte "performance presupuestada" (§9) de eslogan en check reproducible; una regresión de tamaño o de Web Vitals falla antes de mergear.
 **Trade-off:** Lighthouse en CI tiene varianza de laboratorio; por eso sus asserts de performance son _warn_ y los de accesibilidad _error_. El gate duro y estable es `size-limit`.
 
+### ADR-016 — Regresión visual como _story-as-test_ (test-runner + axe); el diff de pixel se difiere
+
+**Contexto:** §7 pide "visual regression: diffs visuales por componente" (Storybook test-runner / Chromatic). El diff de pixel con snapshots commiteados tiene un problema real en este proyecto: el render de fuentes difiere entre el Windows de desarrollo y el Linux de CI, así que un baseline generado en local rompe el CI por anti-aliasing, no por una regresión real. Hacerlo determinista exige un entorno de render fijo (contenedor Docker de Playwright) o un servicio hosteado (Chromatic), descartado en la decisión de herramienta.
+**Decisión:** la regresión visual se implementa con **`@storybook/test-runner`** ejecutando **cada story en Chromium real**: por sí solo es un _smoke test_ (una story que lanza al renderizar rompe el build — "story-as-test", §10.1) y se le añade un **check de axe por story** (motor real, ve el contraste que jsdom no). El **diff de pixel se difiere** hasta disponer de un entorno de render determinista (Docker/Chromatic).
+**Razón:** entrega una red de regresión reproducible y cross-OS hoy (render + accesibilidad por componente) sin la fragilidad de baselines de pixel atados al SO. El contraste —el agujero clásico que jsdom no cubre— queda verificado en navegador real tanto en el DS (test-runner) como en la app (E2E con cypress-axe).
+**Trade-off:** no detecta regresiones puramente visuales (un color que cambia sin romper axe). Mitigación: el diff de pixel entra cuando se fije el entorno de render; mientras, Storybook desplegado sirve de contrato visual revisable.
+
 ---
 
 ## 6. Estrategia de estado y datos (en la app)
@@ -413,6 +420,7 @@ Cada fase termina con algo demostrable y testeado. No hay una fase "de testing a
 | 1.0.0   | 2026-06-18 | Baseline. Arquitectura, ADR-001…007, vistas, testing, performance, riesgos, roadmap.                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | 1.1.0   | 2026-06-18 | Nombre del proyecto definido (Telar / Tejido). Nuevas decisiones de fundación: ADR-008 (Reka UI headless), ADR-009 (tokens en tres niveles + Style Dictionary, refina ADR-002), ADR-010 (TanStack Table + vee-validate/Zod), ADR-011 (CSS @layer + `:where()`), ADR-012 (shallowRef + virtualización). Capa headless agregada al modelo de capas (§4.2). Tácticas de performance ampliadas (container queries, anti-FOUC). CI con caché de tareas afectadas (Turborepo) y story-as-test. Riesgos de dependencia (Reka) y virtualización añadidos. |
 | 1.2.0   | 2026-06-19 | Decisiones surgidas durante la implementación (Fases 0–1): ADR-013 (DoD ejecutable — contract tests + sin colores mágicos + umbral de cobertura), ADR-014 (Storybook como documentación viva y base de visual regression), ADR-015 (presupuestos de performance verificados en CI con size-limit + Lighthouse CI). Reflejan que el SAD es vivo: lo construido retroalimenta lo documentado.                                                                                                                                                       |
+| 1.3.0   | 2026-06-19 | Fase 3 (endurecimiento): ADR-016 (regresión visual como _story-as-test_ con test-runner + axe; diff de pixel diferido por determinismo de render). E2E (Cypress + cypress-axe) y observabilidad (capa vendor-agnóstica: errores + Web Vitals + versión DS/app embebida, §10.3) implementados; el E2E con axe real destapó y se corrigió contraste AA roto en tema oscuro que jsdom no veía.                                                                                                                                                |
 
 ---
 

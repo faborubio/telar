@@ -15,6 +15,8 @@ export default tseslint.config(
       '**/coverage/**',
       '**/storybook-static/**',
       'packages/ds/src/tokens/generated/**',
+      // Worker de MSW: código generado por `msw init`, no fuente del proyecto.
+      '**/public/mockServiceWorker.js',
     ],
   },
 
@@ -78,6 +80,23 @@ export default tseslint.config(
   {
     files: ['**/*.config.{ts,js,mjs}', '**/vite.config.ts', '**/build-tokens.mjs'],
     languageOptions: { globals: { ...globals.node } },
+  },
+
+  // E2E de Cypress: globals de Cypress + Mocha; triple-slash es el idiom de Cypress.
+  {
+    files: ['packages/app/cypress/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.mocha,
+        cy: 'readonly',
+        Cypress: 'readonly',
+        expect: 'readonly',
+        assert: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/triple-slash-reference': 'off',
+    },
   },
 
   // SIEMPRE al final: desactiva las reglas de formato que entran en conflicto con Prettier.

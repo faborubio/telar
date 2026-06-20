@@ -18,6 +18,11 @@ packages/ds/src/tokens/generated/
 # Testing
 coverage/
 
+# Cypress (artefactos de ejecución; las specs sí se versionan)
+packages/app/cypress/videos/
+packages/app/cypress/screenshots/
+packages/app/cypress/downloads/
+
 # Editor / OS
 .DS_Store
 *.local

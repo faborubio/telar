@@ -247,4 +247,137 @@
 
 ## Fase 3 — Endurecimiento
 
-⬜ Pendiente. E2E, Lighthouse CI, visual regression, observabilidad, docs, primer release del DS.
+🔶 **En curso**, en slices. Plan: Slice 1 — E2E (Cypress); Slice 2 — visual regression + observabilidad; Slice 3 — primer release del DS + cierre. (Lighthouse CI + size budgets ya activos desde Fase 1.)
+
+### Slice 1 — E2E de flujos críticos (Cypress + cypress-axe)
+
+**Estado:** ✅ auditado · **Fecha:** 2026-06-19.
+
+**Objetivo:** ejercitar de punta a punta, en un navegador real y sobre MSW, los caminos que duelen en producción (SAD §7): login + guard, tabla con filtro/orden/paginación, edición con feedback, y error de red. Como subproducto, validar la afirmación de accesibilidad AA (SAD §8) con un motor de axe real.
+
+**Entregado:**
+
+- **Cypress 14** en `packages/app` corriendo contra el server de **dev de Vite** (donde MSW intercepta la red, ADR-006): los mismos mocks de dev/test sirven también en E2E, sin backend. `start-server-and-test` levanta el server y lanza Cypress (`pnpm e2e`).
+- **4 specs, 12 tests, 100% verde**, seleccionando por **rol/label accesible**, no por CSS (SAD §7):
+  - `auth.cy.ts` (4): guard redirige a `/login` con `redirect`; credenciales inválidas → alerta; login real → vuelve al destino → logout; **a11y del login**.
+  - `users-table.cy.ts` (4): filtro + conteo; orden por nombre con `aria-sort` (asc/desc); paginación cliente (10/12, botones disabled en extremos); **a11y con datos**.
+  - `user-edit.cy.ts` (3): carga del detalle precargado, guardar → **Toast** de éxito → redirect, y **persistencia** verificada reabriendo el detalle; validación Zod bloquea submit; **a11y del detalle**.
+  - `network-error.cy.ts` (1): fuerza un **500** en `/api/users` vía el handle de MSW expuesto en `window` (cy.intercept no puede tocar lo que resuelve el Service Worker), verifica el estado de error con **Reintentar** y la recuperación.
+- **cypress-axe** integrado: comando `cy.a11y()` (inyecta axe + 0 violaciones; falla el test ante cualquier violación) con volcado de id/impacto/target al terminal vía `cy.task`. Comandos custom `cy.login()` y `cy.findByLabel()` (resuelve `<label for>` → control).
+- **Aislamiento:** `cypress/tsconfig.json` (tipos de Cypress fuera del typecheck de la app); bloque de ESLint para globals de Cypress/Mocha; artefactos de Cypress en `.gitignore`; worker generado de MSW (`public/mockServiceWorker.js`) ignorado por ESLint.
+- **CI:** nuevo job `e2e` en `ci.yml` con la action oficial `cypress-io/github-action@v6` (gestiona Xvfb y la caché del binario) sobre el server de dev.
+- **MSW expuesto en `window` solo en DEV** (`main.ts`) para que el E2E sobreescriba handlers en runtime.
+
+**Hallazgos y correcciones (lo que el E2E destapó):**
+
+1. **Contraste AA roto en tema oscuro (defecto real del DS y de la app).** axe en navegador real marcó `color-contrast` (`serious`) que jsdom nunca vio:
+   - **Botón primario:** texto blanco sobre `action` (dark `blue.500`) = 3.68:1 (< 4.5). Corregido: `action` dark → `blue.600/700/800` (5.17:1). Seguro porque `action` solo es fondo de botón.
+   - **Enlaces de la app:** RouterLinks sin color → azul por defecto del navegador, ilegible en oscuro. Corregido con tokens nuevos `color.link`/`link-hover` (claro sobre oscuro / oscuro sobre claro) + estilo base de `a` en la app. Ambos en el changeset `a11y-dark-contrast` (patch del DS).
+2. **`ELECTRON_RUN_AS_NODE=1`** en el entorno local rompía el arranque de Cypress (`bad option: --smoke-test`). Se limpia antes de correr; no afecta a CI. Registrado en TROUBLESHOOTING.
+3. **cwd compartido entre shells:** un `cd` previo dejó el working directory en `packages/ds/tokens` y rompió `pnpm -C packages/app …`. Registrado (no usar `cd`).
+4. **Listado no refresca tras editar:** el detalle escribe vía service y no por el store, así que la `UsersPage` (que cachea) muestra datos viejos. El test verifica la persistencia reabriendo el detalle, no el refresco del listado. Documentado como deuda.
+
+**Verificaciones:**
+
+| Check            | Resultado                                                          |
+| ---------------- | ------------------------------------------------------------------ |
+| `pnpm typecheck` | ✅ 4/4                                                             |
+| `pnpm lint`      | ✅ 3/3, 0/0 (incl. globals de Cypress)                            |
+| `pnpm test`      | ✅ DS **87/87** · App **7/7** · cobertura 98.9% líneas / 83.3% br |
+| `pnpm build`     | ✅ ds + app                                                       |
+| `pnpm size`      | ✅ App 86.55 kB · DS 6.7 kB (budgets 180/15)                      |
+| `pnpm e2e`       | ✅ **12/12** (4 specs), incl. 3 checks de axe en Chromium real    |
+
+**Deuda aceptada:**
+
+- **E2E corre sobre el server de dev** (MSW activo solo en DEV). Probar la SPA **buildeada** requeriría arrancar MSW también en preview/prod o un backend; fuera del alcance del slice.
+- **Listado sin refresco tras editar** (cache de `UsersPage`): candidato a una acción `update` en el store de users; hoy documentado.
+- **Contraste del botón `danger` y otras superficies no ejercidas** por estas pantallas: no verificadas por axe aún (no aparecen en los flujos). Se cubrirían ampliando stories/escenarios.
+- **Visual regression** (la otra mitad de "consistencia visual", SAD §5) entra en el Slice 2.
+
+**Veredicto:** ✅ **Aprobado.** Los flujos críticos están cubiertos E2E en verde y el E2E con axe real cumplió su función el día uno: destapó y se corrigieron defectos de contraste AA que los unit tests no podían ver. Listo para **Slice 2** (visual regression + observabilidad).
+
+### Slice 2 — Regresión visual + observabilidad
+
+**Estado:** ✅ auditado · **Fecha:** 2026-06-19.
+
+**Objetivo:** cerrar las dos patas que faltaban del endurecimiento salvo el release: una red de **regresión visual** por componente y una capa de **observabilidad** (SAD §10.3).
+
+**Entregado — Regresión visual (DS, ADR-016):**
+
+- **`@storybook/test-runner`** ejecuta **cada story en Chromium real**: smoke test (una story que lanza al renderizar rompe el build, "story-as-test" §10.1) + **check de axe por story** (`axe-playwright` en `postVisit`, acotado a `#storybook-root`, respeta `parameters.a11y.disable`).
+- Scripts `test-storybook` y `test-storybook:ci` (sirve `storybook-static` con `http-server` + `wait-on` + test-runner). Job `visual` en CI (instala Chromium con `--with-deps`, build-storybook, corre el runner).
+- **Resultado:** **11 suites / 31 tests, 0 violaciones de accesibilidad** en todo el catálogo del DS (tema claro). El DS está limpio en navegador real.
+- **Diff de pixel diferido** (ADR-016): los baselines de pixel dependen del SO (render de fuentes Windows≠Linux); hacerlo determinista exige Docker/Chromatic. Documentado como trade-off, no como olvido.
+
+**Entregado — Observabilidad (app, SAD §10.3):**
+
+- Módulo **vendor-agnóstico** `src/observability/`: captura global de **errores** (`error` + `unhandledrejection`) y **Core Web Vitals** reales (RUM: LCP/CLS/INP/FCP/TTFB vía `web-vitals`), con la **versión DS + app embebida** en cada evento (inyectada por Vite `define` leyendo los `package.json`).
+- **Transport** desacoplado (interfaz `ObservabilityTransport`): consola por defecto, punto único donde se enchufa un DSN real (Sentry/equivalente) sin tocar a los emisores. Source maps ya se generan en el build de la app (`sourcemap: true`).
+- `initObservability()` cableado en `main.ts` antes de montar. 4 tests (captura de error/rejection con release embebido, reporte de Web Vitals con rating, teardown sin fugas).
+
+**Verificaciones:**
+
+| Check               | Resultado                                                  |
+| ------------------- | ---------------------------------------------------------- |
+| `pnpm typecheck`    | ✅ 4/4                                                     |
+| `pnpm lint`         | ✅ 3/3, 0/0                                                |
+| `pnpm test`         | ✅ DS **87/87** · App **11/11** (+4 de observabilidad)    |
+| `pnpm build`        | ✅ ds + app                                                |
+| `pnpm size`         | ✅ App 88.58 kB (web-vitals +~2 kB) · DS 6.7 kB (180/15)   |
+| `test-storybook:ci` | ✅ **31/31** stories (smoke + axe) en Chromium             |
+
+**Hallazgos y correcciones:**
+
+1. **`@swc/core` con build script bloqueado por pnpm** (transitivo del test-runner/jest): aprobado en `pnpm-workspace.yaml` (mismo patrón que esbuild/cypress).
+2. **Playwright requiere instalar Chromium aparte** (`playwright install chromium`); en CI con `--with-deps`. No es un build script de pnpm.
+3. Import de tipo sin usar en `transport.ts` (TS6196) — corregido.
+
+**Deuda aceptada:**
+
+- **Diff de pixel** pendiente de un entorno de render determinista (ADR-016).
+- **Transport real** no conectado: el módulo está listo y probado, pero hoy emite por consola (conectar un DSN/endpoint es config de despliegue, no de código). El Slice 3 / despliegue de la app lo activaría.
+- El test-runner corre las stories en **tema claro** (globals por defecto); el contraste en oscuro lo cubre el E2E de la app.
+
+**Veredicto:** ✅ **Aprobado.** Regresión visual (story-as-test + axe, 31/31) y observabilidad (vendor-agnóstica, con versión embebida) en verde. Listo para **Slice 3** (primer release versionado del DS + cierre de Fase 3).
+
+### Slice 3 — Primer release versionado del DS + cierre de Fase 3
+
+**Estado:** ✅ auditado · **Fecha:** 2026-06-20.
+
+**Objetivo:** cerrar la Fase 3 con el primer release versionado del DS (ADR-007) y dejar el pipeline de release preparado.
+
+**Entregado:**
+
+- **`@telar/ds` → `0.1.1`** (primer release versionado): `changeset version` consumió el changeset `a11y-dark-contrast` (patch) y antepuso la sección al `CHANGELOG.md` (que ya tenía la `0.1.0` de la Fase 1). El bump y la nota viven en el changelog, no en una afirmación suelta.
+- **Workflow de release** (`.github/workflows/release.yml`): Changesets en cada push a `main`; con changesets pendientes abre/actualiza la PR **"Version Packages"**. Script `release` (`build del DS + changeset publish`).
+- **Publish gateado a propósito** (DEPLOY.md §2): hoy la app consume el DS vía `workspace:*`; el registry privado se configura al **extraer** la librería. Habilitarlo = descomentar `publish: pnpm release` + secret `NPM_TOKEN`. `changeset publish` creará el **tag git** y la **GitHub Release**.
+
+**Verificaciones:**
+
+| Check            | Resultado                                       |
+| ---------------- | ----------------------------------------------- |
+| `pnpm version-packages` | ✅ DS 0.1.0 → 0.1.1 · CHANGELOG actualizado |
+| `pnpm typecheck` | ✅ 4/4                                          |
+| `pnpm lint`      | ✅ 3/3, 0/0                                     |
+| `pnpm test`      | ✅ DS 87/87 · App 11/11                         |
+| `pnpm build`     | ✅ ds + app                                     |
+
+**Deuda aceptada:**
+
+- **Publish real + tag/GitHub Release** no ejecutados: gateados hasta configurar registry (decisión consciente, no olvido). El workflow y el script están listos.
+- El bump fue **patch** (a11y). Las features del DS de fases previas ya estaban en `0.1.0`.
+
+**Veredicto:** ✅ **Aprobado.**
+
+---
+
+## Fase 3 — Veredicto de cierre
+
+✅ **Fase 3 cerrada (2026-06-20).** Endurecimiento completo en 3 slices:
+
+- **Slice 1** — E2E (Cypress + cypress-axe): 4 specs / 12 tests de flujos críticos, en navegador real sobre MSW. Destapó y corrigió contraste AA roto en tema oscuro.
+- **Slice 2** — Regresión visual (Storybook test-runner: story-as-test + axe, 31/31, ADR-016) + observabilidad vendor-agnóstica (errores + Web Vitals + versión embebida, SAD §10.3).
+- **Slice 3** — Primer release versionado del DS (`@telar/ds@0.1.1`) + workflow de release (publish gateado).
+
+**Gates activos al cierre:** typecheck · lint (incl. regla `ds ✗→ app`) · unit/component (DS 87 + App 11) · cobertura con umbral · DoD ejecutable (contract tests) · size-limit · Lighthouse CI · **E2E (Cypress)** · **regresión visual (test-runner)** · a11y (axe en unit + E2E + test-runner). **Deuda restante** (no bloqueante): diff de pixel (determinismo de render), transport de observabilidad real (config de despliegue), publish del DS (registry al extraer). El proyecto Telar cumple su tesis: un DS versionado y un app de referencia que lo estresa, endurecidos con gates reproducibles de punta a punta.

@@ -1,0 +1,55 @@
+name: Release
+
+# Versionado del DS con Changesets (ADR-007). En cada push a main, si hay changesets
+# pendientes, abre/actualiza la PR "Version Packages" (que aplica los bumps + CHANGELOG).
+#
+# El PUBLISH está GATEADO a propósito: hoy el DS se consume vía `workspace:*` y el registry
+# privado se configura al extraer la librería (DEPLOY.md §2). Para habilitar la publicación
+# real cuando exista registry: añadir el input `publish: pnpm release` al paso de abajo y el
+# secret `NPM_TOKEN` (+ `.npmrc`). `pnpm release` ya construye el DS y corre `changeset publish`
+# (que además crea el tag git y, con él, la GitHub Release).
+on:
+  push:
+    branches: [main]
+
+concurrency: release-${{ github.ref }}
+
+permissions:
+  contents: write # commit/tag de la Version PR
+  pull-requests: write # abrir la PR "Version Packages"
+
+jobs:
+  release:
+    name: Version Packages (publish gateado)
+    runs-on: ubuntu-latest
+    # No correr en el commit que la propia action genera (evita bucles).
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate tokens
+        run: pnpm tokens
+
+      - name: Create Release PR
+        uses: changesets/action@v1
+        with:
+          version: pnpm version-packages
+          # publish: pnpm release   # ← habilitar junto con NPM_TOKEN cuando haya registry.
+          commit: 'chore: version packages'
+          title: 'chore: version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

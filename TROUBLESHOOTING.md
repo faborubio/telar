@@ -123,6 +123,30 @@
 - **Secuela (caché):** un 301 es _permanente_ y los navegadores lo cachean agresivamente. Si tras el fix el navegador sigue redirigiendo: **incógnito** o limpiar caché (DevTools → recargar forzado). `curl -I` (sin caché) confirma el estado real del servidor.
 - Prevención: no fijar un custom domain en Pages sin DNS válido; recordar que `curl`/incógnito evitan la caché de 301 al diagnosticar.
 
+## [2026-06-19] Cypress no arranca: `bad option: --smoke-test` / `--ping`
+
+- Contexto: `pnpm -C packages/app e2e` (Fase 3, primer run local de Cypress en Windows).
+- Síntoma: `Cypress failed to start … Cypress.exe: bad option: --smoke-test` y `bad option: --ping=480`. El binario de Cypress (Electron) rechaza sus propios flags.
+- Causa raíz: la variable de entorno **`ELECTRON_RUN_AS_NODE=1`** estaba seteada en el shell (la inyecta el IDE/harness). Con esa variable, el binario de Cypress arranca como **Node plano** en vez de como Electron, y no entiende `--smoke-test`/`--ping`.
+- Solución: limpiar la variable antes de correr Cypress. En PowerShell, en el **mismo** comando (el estado no persiste entre invocaciones): `Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue; pnpm -C packages/app e2e`.
+- Prevención: es un gotcha **solo local** (en GitHub Actions la variable no existe, el job de CI corre limpio). Si Cypress falla con "bad option", revisar `ELECTRON_RUN_AS_NODE` antes que nada.
+
+## [2026-06-19] ENOENT `packages/ds/tokens/packages` — cwd contaminado entre herramientas
+
+- Contexto: `pnpm -C packages/app exec vite` / `e2e` fallaba con `ENOENT: lstat 'C:\…\packages\ds\tokens\packages'`; además un `pnpm build` previo solo construyó el DS, no la app.
+- Síntoma: pnpm intenta expandir el glob de workspace (`packages/*`) bajo `packages/ds/tokens`, que no existe.
+- Causa raíz: un `cd packages/ds/tokens` ejecutado en una shell **cambió el working directory**, que aquí se **comparte entre las herramientas de shell** (Bash y PowerShell). Con el cwd en `packages/ds/tokens`, `pnpm -C packages/app …` resolvía rutas y el workspace desde el lugar equivocado.
+- Solución: restaurar el cwd a la raíz (`Set-Location 'C:\…\telar'`) y re-ejecutar.
+- Prevención: **no usar `cd`** para "entrar" a subcarpetas (el tooling lo advierte). Para inspeccionar archivos, usar rutas absolutas o las herramientas de búsqueda/lectura; para correr un paquete, `pnpm -C <paquete> …` desde la raíz.
+
+## [2026-06-19] Violaciones de contraste que jsdom no ve pero axe en navegador real sí
+
+- Contexto: E2E de a11y (cypress-axe en Electron/Chromium) en la Fase 3; los tests unitarios con vitest-axe (jsdom) estaban en verde.
+- Síntoma: `color-contrast` (`serious`) en el botón primario y en los enlaces de la app, **solo** en el E2E y **solo** en tema oscuro.
+- Causa raíz: **jsdom no computa estilos ni contraste**, así que la regla `color-contrast` de axe queda inerte en los tests unitarios. Un navegador real sí la evalúa. El tema oscuro se activa por `prefers-color-scheme: dark` (Electron headless lo reporta).
+- Solución: corregidos los tokens (ver changeset `a11y-dark-contrast`): `action` dark → `blue.600/700/800` (botón con texto blanco) y nuevos `color.link`/`link-hover` para texto de enlace (claro sobre oscuro).
+- Prevención: el contraste **solo se verifica de verdad en un navegador real** (E2E con cypress-axe). No asumir AA por el verde de vitest-axe. El gate de contraste vive en el E2E, no en los unit tests.
+
 ---
 
 ## Notas del entorno (gotchas Windows / pnpm / Node)
