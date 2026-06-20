@@ -279,9 +279,9 @@
 
 **Verificaciones:**
 
-| Check            | Resultado                                                          |
-| ---------------- | ------------------------------------------------------------------ |
-| `pnpm typecheck` | ✅ 4/4                                                             |
+| Check            | Resultado                                                         |
+| ---------------- | ----------------------------------------------------------------- |
+| `pnpm typecheck` | ✅ 4/4                                                            |
 | `pnpm lint`      | ✅ 3/3, 0/0 (incl. globals de Cypress)                            |
 | `pnpm test`      | ✅ DS **87/87** · App **7/7** · cobertura 98.9% líneas / 83.3% br |
 | `pnpm build`     | ✅ ds + app                                                       |
@@ -318,14 +318,14 @@
 
 **Verificaciones:**
 
-| Check               | Resultado                                                  |
-| ------------------- | ---------------------------------------------------------- |
-| `pnpm typecheck`    | ✅ 4/4                                                     |
-| `pnpm lint`         | ✅ 3/3, 0/0                                                |
-| `pnpm test`         | ✅ DS **87/87** · App **11/11** (+4 de observabilidad)    |
-| `pnpm build`        | ✅ ds + app                                                |
-| `pnpm size`         | ✅ App 88.58 kB (web-vitals +~2 kB) · DS 6.7 kB (180/15)   |
-| `test-storybook:ci` | ✅ **31/31** stories (smoke + axe) en Chromium             |
+| Check               | Resultado                                                |
+| ------------------- | -------------------------------------------------------- |
+| `pnpm typecheck`    | ✅ 4/4                                                   |
+| `pnpm lint`         | ✅ 3/3, 0/0                                              |
+| `pnpm test`         | ✅ DS **87/87** · App **11/11** (+4 de observabilidad)   |
+| `pnpm build`        | ✅ ds + app                                              |
+| `pnpm size`         | ✅ App 88.58 kB (web-vitals +~2 kB) · DS 6.7 kB (180/15) |
+| `test-storybook:ci` | ✅ **31/31** stories (smoke + axe) en Chromium           |
 
 **Hallazgos y correcciones:**
 
@@ -357,13 +357,13 @@
 
 **Verificaciones:**
 
-| Check            | Resultado                                       |
-| ---------------- | ----------------------------------------------- |
+| Check                   | Resultado                                   |
+| ----------------------- | ------------------------------------------- |
 | `pnpm version-packages` | ✅ DS 0.1.0 → 0.1.1 · CHANGELOG actualizado |
-| `pnpm typecheck` | ✅ 4/4                                          |
-| `pnpm lint`      | ✅ 3/3, 0/0                                     |
-| `pnpm test`      | ✅ DS 87/87 · App 11/11                         |
-| `pnpm build`     | ✅ ds + app                                     |
+| `pnpm typecheck`        | ✅ 4/4                                      |
+| `pnpm lint`             | ✅ 3/3, 0/0                                 |
+| `pnpm test`             | ✅ DS 87/87 · App 11/11                     |
+| `pnpm build`            | ✅ ds + app                                 |
 
 **Deuda aceptada:**
 
@@ -411,15 +411,15 @@
 
 **Verificaciones:**
 
-| Check                         | Resultado                                                                 |
-| ----------------------------- | ------------------------------------------------------------------------- |
-| Emuladores (JDK 21)           | ✅ Firestore+Auth+Functions ready (la función `api` carga)                |
-| Backend en vivo (curl)        | ✅ `/users` sin token → **401**; con ID token → **200 + 12**; `/users/3` ok |
-| Modo firebase vía proxy Vite  | ✅ `/api/users` (proxy→Function) 401/200 correcto                          |
-| `pnpm test` (modo mock)       | ✅ App **11/11** (auth+users+observabilidad) — suite intacta              |
-| `pnpm typecheck`              | ✅ 5/5 (incluye `@telar/functions`)                                       |
-| `pnpm lint`                   | ✅ 4/4, 0/0 (limpiados 3 `eslint-disable` latentes)                       |
-| `pnpm build` · `pnpm size`    | ✅ App 88.7 kB (firebase es lazy, no infla el inicial) · DS 6.7 kB        |
+| Check                        | Resultado                                                                   |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| Emuladores (JDK 21)          | ✅ Firestore+Auth+Functions ready (la función `api` carga)                  |
+| Backend en vivo (curl)       | ✅ `/users` sin token → **401**; con ID token → **200 + 12**; `/users/3` ok |
+| Modo firebase vía proxy Vite | ✅ `/api/users` (proxy→Function) 401/200 correcto                           |
+| `pnpm test` (modo mock)      | ✅ App **11/11** (auth+users+observabilidad) — suite intacta                |
+| `pnpm typecheck`             | ✅ 5/5 (incluye `@telar/functions`)                                         |
+| `pnpm lint`                  | ✅ 4/4, 0/0 (limpiados 3 `eslint-disable` latentes)                         |
+| `pnpm build` · `pnpm size`   | ✅ App 88.7 kB (firebase es lazy, no infla el inicial) · DS 6.7 kB          |
 
 **Hallazgos y correcciones:**
 

@@ -9,7 +9,7 @@
 
 | Documento                                | Para qué sirve                                                                                                                           | Cuándo leerlo                                                          |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| **[SAD.md](SAD.md)**                     | **Fuente de verdad arquitectónica**: contexto, drivers de calidad, ADR-001…015, capas, testing, performance, riesgos, roadmap por fases. | **Siempre primero.** Toda decisión técnica se justifica contra el SAD. |
+| **[SAD.md](SAD.md)**                     | **Fuente de verdad arquitectónica**: contexto, drivers de calidad, ADR-001…018, capas, testing, performance, riesgos, roadmap por fases. | **Siempre primero.** Toda decisión técnica se justifica contra el SAD. |
 | [README.md](README.md)                   | Qué es el proyecto, cómo levantarlo, scripts, estructura.                                                                                | Para correr/entender el proyecto.                                      |
 | [AUDIT.md](AUDIT.md)                     | Auditoría al cierre de **cada fase**: qué se entregó, hallazgos, deuda, decisiones.                                                      | Al terminar/iniciar una fase.                                          |
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Bitácora de errores ya resueltos para **no repetirlos**.                                                                                 | Ante cualquier error: buscar aquí antes de depurar de cero.            |
@@ -73,25 +73,25 @@ Detalle de capas del DS y flujo de datos: **SAD §4 y §6**.
 
 > Todos vía pnpm + Turborepo. Turbo solo rebuildea/testea lo afectado.
 
-| Comando                         | Qué hace                                                        |
-| ------------------------------- | --------------------------------------------------------------- |
-| `pnpm install`                  | Instala dependencias del workspace.                             |
-| `pnpm tokens`                   | Genera CSS vars + tipos TS desde los tokens (Style Dictionary). |
-| `pnpm dev`                      | Levanta la app (`packages/app`) en modo dev.                    |
-| `pnpm build`                    | Build de todos los paquetes (ds en modo library, app SPA).      |
-| `pnpm typecheck`                | `vue-tsc` estricto en todo el workspace.                        |
-| `pnpm lint`                     | ESLint (incluye regla de dependencia `ds ✗→ app`).              |
-| `pnpm test`                     | Vitest (unit + component + **contrato/DoD**) en ambos paquetes. |
-| `pnpm size`                     | Presupuestos de bundle (`size-limit`); rompe si excede budget.  |
-| `pnpm lighthouse`               | Lighthouse CI sobre la app construida (corre en CI).            |
-| `pnpm e2e`                      | E2E (Cypress) de flujos críticos sobre el server de dev + MSW. |
-| `pnpm -C packages/ds test-storybook:ci` | Regresión visual: test-runner (smoke + axe por story).  |
-| `pnpm emulators`                | Emulator Suite (Firestore+Auth+Functions). **Requiere JDK 21 en PATH.** |
-| `pnpm emulators:seed`           | Siembra el emulador (Firestore + usuarios de Auth, clave `telar123`). |
-| `pnpm -C packages/app dev:firebase` | App en modo backend real (Firebase), contra los emuladores.       |
-| `pnpm changeset`                | Registra un cambio para versionar el DS (Changesets).           |
-| `pnpm -C packages/ds storybook` | Storybook del DS en dev (:6006).                                |
-| `pnpm -C packages/app dev`      | Forma explícita de correr un paquete concreto.                  |
+| Comando                                 | Qué hace                                                                |
+| --------------------------------------- | ----------------------------------------------------------------------- |
+| `pnpm install`                          | Instala dependencias del workspace.                                     |
+| `pnpm tokens`                           | Genera CSS vars + tipos TS desde los tokens (Style Dictionary).         |
+| `pnpm dev`                              | Levanta la app (`packages/app`) en modo dev.                            |
+| `pnpm build`                            | Build de todos los paquetes (ds en modo library, app SPA).              |
+| `pnpm typecheck`                        | `vue-tsc` estricto en todo el workspace.                                |
+| `pnpm lint`                             | ESLint (incluye regla de dependencia `ds ✗→ app`).                      |
+| `pnpm test`                             | Vitest (unit + component + **contrato/DoD**) en ambos paquetes.         |
+| `pnpm size`                             | Presupuestos de bundle (`size-limit`); rompe si excede budget.          |
+| `pnpm lighthouse`                       | Lighthouse CI sobre la app construida (corre en CI).                    |
+| `pnpm e2e`                              | E2E (Cypress) de flujos críticos sobre el server de dev + MSW.          |
+| `pnpm -C packages/ds test-storybook:ci` | Regresión visual: test-runner (smoke + axe por story).                  |
+| `pnpm emulators`                        | Emulator Suite (Firestore+Auth+Functions). **Requiere JDK 21 en PATH.** |
+| `pnpm emulators:seed`                   | Siembra el emulador (Firestore + usuarios de Auth, clave `telar123`).   |
+| `pnpm -C packages/app dev:firebase`     | App en modo backend real (Firebase), contra los emuladores.             |
+| `pnpm changeset`                        | Registra un cambio para versionar el DS (Changesets).                   |
+| `pnpm -C packages/ds storybook`         | Storybook del DS en dev (:6006).                                        |
+| `pnpm -C packages/app dev`              | Forma explícita de correr un paquete concreto.                          |
 
 (La tabla se mantiene al día conforme se agregan scripts; ver README para el detalle.)
 
