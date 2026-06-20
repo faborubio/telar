@@ -100,37 +100,62 @@ pnpm -C packages/app dev:firebase  # app en modo firebase (Vite proxya /api → 
 
 ---
 
-## 5. Despliegue a Firebase (Hosting + Functions) — Fase 4 / Slice 2
+## 5. Despliegue a Firebase (Hosting + Functions) — Fase 4 / Slice 2 — ✅ EN VIVO
 
-La app va a **Firebase Hosting** (con rewrite `/api/** → Functions`) y el backend a **Cloud Functions** + **Firestore** + **Firebase Auth**. El workflow [`deploy.yml`](.github/workflows/deploy.yml) lo automatiza, **gateado** por la variable de repo `FIREBASE_PROJECT_ID` (mientras no exista, es un no-op: el push a main no falla).
+**App desplegada:** **https://telar-tejido.web.app** · demo `ada@telar.dev` / `telar123`.
 
-### Pasos del usuario (una vez) — lo que requiere tu cuenta GCP/Firebase
+### Estado actual del despliegue (para retomar)
 
-1. **Crear el proyecto** (Blaze ya activo): consola de Firebase → _Add project_ (o `firebase projects:create telar-prod`). Anota el **Project ID**.
-2. **Habilitar servicios** en la consola: **Authentication** → proveedor _Email/Password_; **Firestore Database** → crear en modo producción.
-3. **App web + config:** _Project settings → General → Your apps → Web app_. Copia el objeto `firebaseConfig` (`apiKey`, `authDomain`, `projectId`, `appId`). **No es secreto** (viaja al cliente).
-4. **Service account para CI:** _Project settings → Service accounts → Generate new private key_ (JSON). Da permisos de deploy (rol _Firebase Admin_ / _Cloud Functions Admin_ + _Firebase Hosting Admin_ si afinas).
-5. **Configurar GitHub** (_Settings → Secrets and variables → Actions_):
-   - **Variables:** `FIREBASE_PROJECT_ID`, `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_APP_ID`.
-   - **Secret:** `FIREBASE_SERVICE_ACCOUNT` = contenido del JSON del paso 4.
-6. **Seed de producción** (datos + usuarios reales): apuntar el seed al proyecto real (sin emulador) —
-   `GCLOUD_PROJECT=<project-id> GOOGLE_APPLICATION_CREDENTIALS=<sa.json> node functions/lib/seed.js` con las env del emulador **desactivadas**. (Crea 12 usuarios de Auth con la clave demo; cámbiala si el demo es público.)
+- **Proyecto Firebase:** `fabian-portafolio` (**compartido** con el portafolio del autor). Por eso el deploy está **acotado** para no pisar nada:
+  - **Hosting:** sitio dedicado **`telar-tejido`** (`hosting.site` en `firebase.json`). El sitio del portafolio queda intacto.
+  - **Functions:** solo **`functions:api`** (Express REST sobre Firestore, región `us-central1`). No toca otras functions.
+  - **Firestore:** región `us-central1`; reglas **no** se despliegan (las Functions usan Admin SDK). Datos en la colección `users`.
+  - **Auth:** Email/Password. Los 12 usuarios demo se sembraron en el Auth del proyecto (clave `telar123`).
+- **Config web** (pública) en GitHub → _Variables_: `FIREBASE_PROJECT_ID`, `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_APP_ID` (ya configuradas).
+- **Service account** (Admin SDK, para el seed): **fuera del repo**, en `C:\src\telar-sa.json`. `.gitignore` bloquea claves SA. **No** está como secret de GitHub aún (el deploy CI automático está pendiente).
+- **JDK 21** (`C:\src\jdk21`) solo para emuladores locales, no para el deploy.
 
-Con eso, cada push a `main` (o `workflow_dispatch`) **despliega**. También se puede desplegar a mano: `firebase login` y `firebase deploy --only hosting,functions --project <id>`.
+### Re-desplegar (manual, como se hizo)
+
+El deploy usa el `firebase login` del usuario (no un SA con permisos de deploy). Con la sesión activa:
+
+```bash
+# 1) build de la app en modo firebase (config pública) + functions
+#    Crear packages/app/.env.production (gitignored) con:
+#    VITE_BACKEND=firebase
+#    VITE_FIREBASE_API_KEY=...  VITE_FIREBASE_AUTH_DOMAIN=...  VITE_FIREBASE_PROJECT_ID=...  VITE_FIREBASE_APP_ID=...
+pnpm tokens && pnpm build
+# 2) deploy acotado (NUNCA quitar el scope: protege el portafolio)
+firebase deploy --only "hosting:telar-tejido,functions:api" --project fabian-portafolio
+```
+
+### Re-sembrar producción (si hace falta)
+
+```bash
+pnpm -C functions build
+SEED_TARGET=prod GOOGLE_APPLICATION_CREDENTIALS="C:/src/telar-sa.json" GCLOUD_PROJECT=fabian-portafolio node functions/lib/seed.js
+```
+
+(El seed es idempotente. Sin `SEED_TARGET=prod`/SA, apunta al emulador.)
+
+### Deploy automático en CI (pendiente, opcional)
+
+El workflow [`deploy.yml`](.github/workflows/deploy.yml) está listo (solo `workflow_dispatch`, **gateado** por `vars.FIREBASE_PROJECT_ID`). Para activarlo falta un **service account con permisos de deploy** (Hosting Admin + Cloud Functions Admin + Service Account User) en el secret `FIREBASE_SERVICE_ACCOUNT`. Hoy el deploy se hace **a mano** (arriba), que ya funciona.
 
 ### Notas de despliegue de Functions con pnpm
 
 - `functions/` no depende de paquetes del workspace (`workspace:*`); sus deps (`express`, `cors`, `firebase-admin`, `firebase-functions`) son npm puras, así que Firebase las instala en su build aislado sin chocar con pnpm. El `predeploy` de `firebase.json` corre `pnpm -C functions build` (tsc → `lib/`).
 - **Fallback** si el deploy de Functions fallara por resolución de deps: bundlear con esbuild (`functions/src/index.ts` → un `lib/index.js` autocontenido, externalizando `firebase-admin`/`firebase-functions`). No hizo falta en el setup base.
 
-> **Estado:** infraestructura **lista y commiteada**; el deploy real se activa al completar los pasos 1–5 (requieren la cuenta del usuario). El job está gateado hasta entonces.
+> **Estado:** ✅ **desplegado y verificado en vivo** (https://telar-tejido.web.app). Deploy manual con `firebase login`; el deploy automático en CI queda pendiente (necesita un SA con permisos de deploy).
 
-Checklist de release de la app (se completará):
+Checklist de release de la app:
 
-- [ ] Variables de entorno (endpoints reales vs MSW; hoy MSW arranca solo en dev).
-- [~] Source maps para observabilidad: **ya se generan** en el build; falta **subirlos** a un proveedor real (Sentry/equivalente — SAD §10.3) al conectar el transport.
+- [x] Backend real en prod (Firebase): app `firebase`-mode + Functions + Firestore + Auth. **En vivo.**
+- [~] Source maps para observabilidad: **ya se generan** en el build; falta **subirlos** a un proveedor real (Cloud Logging/Sentry — SAD §10.3) al conectar el transport (Slice 3).
 - [x] Versión de DS y app embebidas en cada evento de telemetría. **Implementado** (Vite `define`).
 - [x] Budgets de performance verificados (Lighthouse CI, size-limit — SAD §9). **Ya activos.**
+- [ ] Deploy automático en CI (SA con permisos de deploy + secret `FIREBASE_SERVICE_ACCOUNT`).
 
 ---
 
