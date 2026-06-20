@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 # Cancela runs viejos del mismo ref para no malgastar minutos.
 concurrency:
