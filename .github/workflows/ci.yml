@@ -110,8 +110,13 @@ jobs:
           wait-on-timeout: 120
 
   visual:
-    name: Visual regression (Storybook test-runner · story-as-test + axe)
-    runs-on: ubuntu-latest
+    name: Visual regression (Storybook test-runner · smoke + axe + pixel-diff)
+    # Runner FIJO (no -latest): baselines y verificación deben renderizar en el mismo
+    # entorno para que el diff de pixel sea determinista (ADR-016). Los baselines se
+    # generan en este mismo SO vía el workflow visual-snapshots.yml.
+    runs-on: ubuntu-24.04
+    env:
+      VISUAL_SNAPSHOTS: '1'
     steps:
       - uses: actions/checkout@v4
 
@@ -130,7 +135,7 @@ jobs:
       - name: Generate tokens
         run: pnpm tokens
 
-      # El test-runner monta cada story en Chromium (Playwright): smoke + axe por story.
+      # El test-runner monta cada story en Chromium (Playwright): smoke + axe + pixel-diff.
       - name: Install Playwright (chromium + deps de sistema)
         run: pnpm -C packages/ds exec playwright install chromium --with-deps
 
@@ -139,3 +144,12 @@ jobs:
 
       - name: Run Storybook test-runner
         run: pnpm -C packages/ds test-storybook:ci
+
+      # Si el diff de pixel falla, subir las imágenes de diferencia para inspección.
+      - name: Upload visual diffs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs
+          path: packages/ds/__image_snapshots__/__diff_output__/
+          if-no-files-found: ignore

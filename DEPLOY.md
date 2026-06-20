@@ -54,11 +54,13 @@ install → typecheck → lint → unit+component → build DS → build app
         → [Fase 3] publish del DS
 ```
 
-- Gates ya activos: DoD ejecutable (contract tests), cobertura con umbral, size-limit, Lighthouse, a11y (axe en unit + **axe en E2E y en el test-runner, ambos en navegador real**, addon-a11y), **E2E (Cypress)** de flujos críticos, **regresión visual (Storybook test-runner: story-as-test + axe por story, ADR-016)**.
+- Gates ya activos: DoD ejecutable (contract tests), cobertura con umbral, size-limit, Lighthouse, a11y (axe en unit + **axe en E2E y en el test-runner, ambos en navegador real**, addon-a11y), **E2E (Cypress)** de flujos críticos, **regresión visual (Storybook test-runner: story-as-test + axe + diff de pixel, ADR-016)**.
 - Pendiente Fase 3: publish real del DS.
 
 > **Correr el E2E en local:** `pnpm e2e` (headless) o `pnpm e2e:open` (interactivo). Gotcha Windows: si Cypress falla con `bad option: --smoke-test`, limpiar `ELECTRON_RUN_AS_NODE` (ver TROUBLESHOOTING).
-> **Correr la regresión visual en local:** `pnpm -C packages/ds build-storybook` y luego `pnpm -C packages/ds test-storybook:ci`. Requiere Chromium de Playwright: `pnpm -C packages/ds exec playwright install chromium`.
+> **Correr la regresión visual en local:** `pnpm -C packages/ds build-storybook` y luego `pnpm -C packages/ds test-storybook:ci` (smoke + axe). Requiere Chromium de Playwright: `pnpm -C packages/ds exec playwright install chromium`.
+
+**Diff de pixel (baselines deterministas, ADR-016):** el job `visual` de CI corre en `ubuntu-24.04` con `VISUAL_SNAPSHOTS=1` y **diffea contra baselines commiteados** (`packages/ds/__image_snapshots__/`, comparación SSIM). Los baselines **se generan en CI**, no en local (el render de fuentes Windows≠Linux): se siembran/actualizan con el workflow manual **`visual-snapshots.yml`** (`gh workflow run "Visual snapshots (seed/update baselines)"`), que los comitea al repo desde ese mismo runner. Un cambio visual aprobado se "acepta" re-corriendo ese workflow. En local el snapshot está desactivado por env (solo smoke + axe).
 
 ---
 

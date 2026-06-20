@@ -23,6 +23,9 @@ packages/app/cypress/videos/
 packages/app/cypress/screenshots/
 packages/app/cypress/downloads/
 
+# Regresión visual: los baselines (__image_snapshots__) SÍ se versionan; los diffs no.
+packages/ds/__image_snapshots__/__diff_output__/
+
 # Editor / OS
 .DS_Store
 *.local

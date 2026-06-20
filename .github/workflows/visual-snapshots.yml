@@ -1,0 +1,60 @@
+name: Visual snapshots (seed/update baselines)
+
+# Genera (o actualiza) los baselines de regresión visual y los COMITEA al repo.
+# Es la única forma de sembrar baselines deterministas para Linux sin un Docker local:
+# corre en el MISMO runner fijo (ubuntu-24.04) que el job `visual` de ci.yml, así las
+# capturas coinciden. Disparo MANUAL e intencional (un cambio visual aprobado se "acepta"
+# re-corriendo este workflow). Ver ADR-016 / DEPLOY.md.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write # commitea los baselines de vuelta a la rama
+
+concurrency: visual-snapshots-${{ github.ref }}
+
+jobs:
+  update-baselines:
+    name: Generar y comitear baselines
+    runs-on: ubuntu-24.04
+    env:
+      VISUAL_SNAPSHOTS: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate tokens
+        run: pnpm tokens
+
+      - name: Install Playwright (chromium + deps de sistema)
+        run: pnpm -C packages/ds exec playwright install chromium --with-deps
+
+      - name: Build Storybook
+        run: pnpm -C packages/ds build-storybook
+
+      # -u: escribe/actualiza todos los baselines (story-as-test + axe siguen corriendo).
+      - name: Generar baselines (jest -u)
+        run: pnpm -C packages/ds test-storybook:update
+
+      - name: Comitear baselines
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/ds/__image_snapshots__
+          if git diff --staged --quiet; then
+            echo "Sin cambios en baselines."
+          else
+            git commit -m "chore(visual): actualizar baselines de regresión visual"
+            git push
+          fi

@@ -335,11 +335,13 @@
 
 **Deuda aceptada:**
 
-- **Diff de pixel** pendiente de un entorno de render determinista (ADR-016).
+- **Diff de pixel** pendiente de un entorno de render determinista (ADR-016). _(Resuelto en la adenda de abajo.)_
 - **Transport real** no conectado: el módulo está listo y probado, pero hoy emite por consola (conectar un DSN/endpoint es config de despliegue, no de código). El Slice 3 / despliegue de la app lo activaría.
 - El test-runner corre las stories en **tema claro** (globals por defecto); el contraste en oscuro lo cubre el E2E de la app.
 
 **Veredicto:** ✅ **Aprobado.** Regresión visual (story-as-test + axe, 31/31) y observabilidad (vendor-agnóstica, con versión embebida) en verde. Listo para **Slice 3** (primer release versionado del DS + cierre de Fase 3).
+
+**Adenda (2026-06-20) — diff de pixel implementado:** se añadió la tercera capa del test-runner (`jest-image-snapshot`, SSIM, threshold 2%), resolviendo el determinismo **fijando el entorno de render**: el job `visual` corre en `ubuntu-24.04` con `VISUAL_SNAPSHOTS=1` y diffea contra baselines commiteados; los baselines se siembran/actualizan desde ese mismo runner con el workflow manual `visual-snapshots.yml` (los comitea al repo). En local (Windows) el snapshot se desactiva por env → solo smoke + axe (verificado: 31/31, sin crear `__image_snapshots__`). El diff de pixel deja de ser deuda (ADR-016 actualizado).
 
 ### Slice 3 — Primer release versionado del DS + cierre de Fase 3
 
@@ -380,4 +382,6 @@
 - **Slice 2** — Regresión visual (Storybook test-runner: story-as-test + axe, 31/31, ADR-016) + observabilidad vendor-agnóstica (errores + Web Vitals + versión embebida, SAD §10.3).
 - **Slice 3** — Primer release versionado del DS (`@telar/ds@0.1.1`) + workflow de release (publish gateado).
 
-**Gates activos al cierre:** typecheck · lint (incl. regla `ds ✗→ app`) · unit/component (DS 87 + App 11) · cobertura con umbral · DoD ejecutable (contract tests) · size-limit · Lighthouse CI · **E2E (Cypress)** · **regresión visual (test-runner)** · a11y (axe en unit + E2E + test-runner). **Deuda restante** (no bloqueante): diff de pixel (determinismo de render), transport de observabilidad real (config de despliegue), publish del DS (registry al extraer). El proyecto Telar cumple su tesis: un DS versionado y un app de referencia que lo estresa, endurecidos con gates reproducibles de punta a punta.
+**Gates activos al cierre:** typecheck · lint (incl. regla `ds ✗→ app`) · unit/component (DS 87 + App 11) · cobertura con umbral · DoD ejecutable (contract tests) · size-limit · Lighthouse CI · **E2E (Cypress)** · **regresión visual (test-runner: smoke + axe + diff de pixel)** · a11y (axe en unit + E2E + test-runner). **Deuda restante** (no bloqueante): transport de observabilidad real (config de despliegue) y publish del DS (registry al extraer). El proyecto Telar cumple su tesis: un DS versionado y un app de referencia que lo estresa, endurecidos con gates reproducibles de punta a punta.
+
+> **Nota (2026-06-20):** tras el cierre se completó el **diff de pixel** de la regresión visual (ya no es deuda; ver adenda en Slice 2 y ADR-016 actualizado).

@@ -82,6 +82,12 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.node } },
   },
 
+  // Config del Storybook test-runner: corre en el entorno de jest (expect global) + node.
+  {
+    files: ['packages/ds/.storybook/test-runner.ts'],
+    languageOptions: { globals: { ...globals.jest, ...globals.node } },
+  },
+
   // E2E de Cypress: globals de Cypress + Mocha; triple-slash es el idiom de Cypress.
   {
     files: ['packages/app/cypress/**/*.ts'],
