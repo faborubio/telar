@@ -44,3 +44,5 @@ firebase-debug.log*
 firestore-debug.log*
 ui-debug.log*
 .runtimeconfig.json
+# Env de prod: lo genera el workflow de deploy desde repo vars (config pública, no secreta).
+packages/app/.env.production

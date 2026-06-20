@@ -100,9 +100,30 @@ pnpm -C packages/app dev:firebase  # app en modo firebase (Vite proxya /api → 
 
 ---
 
-## 5. Despliegue de la app (Tejido)
+## 5. Despliegue a Firebase (Hosting + Functions) — Fase 4 / Slice 2
 
-> Pendiente de activar (Fase 4 / Slice 2). La app es una SPA estática: irá a **Firebase Hosting** (con rewrite `/api/** → Functions`). Hasta entonces, MSW (modo mock) o los emuladores (modo firebase) cubren el dev.
+La app va a **Firebase Hosting** (con rewrite `/api/** → Functions`) y el backend a **Cloud Functions** + **Firestore** + **Firebase Auth**. El workflow [`deploy.yml`](.github/workflows/deploy.yml) lo automatiza, **gateado** por la variable de repo `FIREBASE_PROJECT_ID` (mientras no exista, es un no-op: el push a main no falla).
+
+### Pasos del usuario (una vez) — lo que requiere tu cuenta GCP/Firebase
+
+1. **Crear el proyecto** (Blaze ya activo): consola de Firebase → _Add project_ (o `firebase projects:create telar-prod`). Anota el **Project ID**.
+2. **Habilitar servicios** en la consola: **Authentication** → proveedor _Email/Password_; **Firestore Database** → crear en modo producción.
+3. **App web + config:** _Project settings → General → Your apps → Web app_. Copia el objeto `firebaseConfig` (`apiKey`, `authDomain`, `projectId`, `appId`). **No es secreto** (viaja al cliente).
+4. **Service account para CI:** _Project settings → Service accounts → Generate new private key_ (JSON). Da permisos de deploy (rol _Firebase Admin_ / _Cloud Functions Admin_ + _Firebase Hosting Admin_ si afinas).
+5. **Configurar GitHub** (_Settings → Secrets and variables → Actions_):
+   - **Variables:** `FIREBASE_PROJECT_ID`, `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_APP_ID`.
+   - **Secret:** `FIREBASE_SERVICE_ACCOUNT` = contenido del JSON del paso 4.
+6. **Seed de producción** (datos + usuarios reales): apuntar el seed al proyecto real (sin emulador) —
+   `GCLOUD_PROJECT=<project-id> GOOGLE_APPLICATION_CREDENTIALS=<sa.json> node functions/lib/seed.js` con las env del emulador **desactivadas**. (Crea 12 usuarios de Auth con la clave demo; cámbiala si el demo es público.)
+
+Con eso, cada push a `main` (o `workflow_dispatch`) **despliega**. También se puede desplegar a mano: `firebase login` y `firebase deploy --only hosting,functions --project <id>`.
+
+### Notas de despliegue de Functions con pnpm
+
+- `functions/` no depende de paquetes del workspace (`workspace:*`); sus deps (`express`, `cors`, `firebase-admin`, `firebase-functions`) son npm puras, así que Firebase las instala en su build aislado sin chocar con pnpm. El `predeploy` de `firebase.json` corre `pnpm -C functions build` (tsc → `lib/`).
+- **Fallback** si el deploy de Functions fallara por resolución de deps: bundlear con esbuild (`functions/src/index.ts` → un `lib/index.js` autocontenido, externalizando `firebase-admin`/`firebase-functions`). No hizo falta en el setup base.
+
+> **Estado:** infraestructura **lista y commiteada**; el deploy real se activa al completar los pasos 1–5 (requieren la cuenta del usuario). El job está gateado hasta entonces.
 
 Checklist de release de la app (se completará):
 

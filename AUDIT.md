@@ -436,3 +436,31 @@
 - **Reglas de Firestore** deniegan todo acceso directo del cliente (correcto hoy: todo pasa por Functions); si en el futuro el cliente leyera Firestore directo, habría que abrirlas con cuidado.
 
 **Veredicto:** ✅ **Aprobado.** Backend real (Functions + Firestore + Firebase Auth) validado en vivo sobre el Emulator Suite, con la app consumiéndolo en modo `firebase` y la suite existente intacta en modo `mock`. El desacople de services (SAD §6) sostuvo el cambio sin tocar páginas ni DS. Listo para **Slice 2** (Hosting + deploy en GCP).
+
+### Slice 2 — Hosting + deploy CI (infraestructura preparada, gateada)
+
+**Estado:** ⚠️ **infra lista; deploy real pendiente de credenciales del usuario** · **Fecha:** 2026-06-20.
+
+**Objetivo:** dejar listo el despliegue de la app (Hosting) + backend (Functions) a Firebase, sin poder ejecutarlo (requiere la cuenta GCP del usuario: `firebase login`/service account, creación de proyecto).
+
+**Entregado:**
+
+- **Workflow `deploy.yml`** (push a `main` + `workflow_dispatch`): instala → tokens → genera `.env.production` (modo `firebase` + config web desde repo **Variables**) → `pnpm build` (DS + app firebase + functions) → auth con service account → `firebase deploy --only hosting,functions`. **Gateado** por `vars.FIREBASE_PROJECT_ID` → no-op (job omitido) hasta configurarse; el push a main no falla.
+- **`firebase.json` hosting** ya con rewrite `/api/** → api` + SPA fallback (de Slice 1). `.env.production` generado en CI (gitignored; config pública, no secreta).
+- **Runbook** en DEPLOY.md §5: pasos del usuario (crear proyecto, habilitar Auth/Firestore, copiar config web, service account, repo Variables + secret `FIREBASE_SERVICE_ACCOUNT`, seed de prod).
+- **Readiness de Functions con pnpm:** `functions/` no tiene deps de workspace → Firebase instala sus deps npm en build aislado; documentado el fallback de bundling con esbuild por si fallara.
+
+**Verificaciones:**
+
+| Check                | Resultado                                                   |
+| -------------------- | ----------------------------------------------------------- |
+| `deploy.yml` gateado | ✅ job omitido sin `FIREBASE_PROJECT_ID` (no rompe el push) |
+| CI existente         | ✅ verify/e2e/lighthouse/visual siguen en verde             |
+| Deploy real          | ⏸️ **bloqueado**: requiere cuenta/credenciales del usuario  |
+
+**Deuda / pendiente (del usuario):**
+
+- Crear el proyecto Firebase + habilitar Auth/Firestore + service account + repo Variables/secret. Hasta entonces el deploy no corre (por diseño).
+- Verificación end-to-end del deploy (app viva + Functions) solo posible tras esos pasos.
+
+**Veredicto:** ⚠️ **Aprobado con deuda (externa).** La infraestructura de deploy está completa, gateada y documentada; el único bloqueo es la provisión de la cuenta GCP, que es del usuario. No avanza a "cerrado" hasta el primer deploy verde real.
