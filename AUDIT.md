@@ -463,4 +463,21 @@
 - Crear el proyecto Firebase + habilitar Auth/Firestore + service account + repo Variables/secret. Hasta entonces el deploy no corre (por diseño).
 - Verificación end-to-end del deploy (app viva + Functions) solo posible tras esos pasos.
 
-**Veredicto:** ⚠️ **Aprobado con deuda (externa).** La infraestructura de deploy está completa, gateada y documentada; el único bloqueo es la provisión de la cuenta GCP, que es del usuario. No avanza a "cerrado" hasta el primer deploy verde real.
+**Veredicto:** ✅ **Cerrado — desplegado y verificado en vivo (2026-06-20).**
+
+**Adenda — deploy real ejecutado:** se desplegó a **`fabian-portafolio`** (proyecto compartido) de forma **acotada y segura**: Hosting al sitio **`telar-tejido`** (`hosting.site`, no pisa el portafolio existente) y **`functions:api`** (no toca otras functions; no se tocan reglas de Firestore). Blaze activo; el deploy habilitó las APIs (Cloud Functions/Build/Artifact Registry/Run). Auth Email/Password + Firestore (`us-central1`) creados. **Seed de prod** (12 usuarios en Firestore + Auth, vía SA con `SEED_TARGET=prod`).
+
+**Verificación end-to-end en producción:**
+
+| Check                                     | Resultado                                      |
+| ----------------------------------------- | ---------------------------------------------- |
+| `https://telar-tejido.web.app`            | ✅ HTTP 200 (app firebase-mode)                |
+| `/api/users` sin token (rewrite→Function) | ✅ 401 `No autenticado`                        |
+| Login real (Firebase Auth prod)           | ✅ ID token RS256 firmado para `ada@telar.dev` |
+| `/api/users` con token                    | ✅ 200 + 12 usuarios desde Firestore           |
+
+**Cómo se desplegó:** build firebase-mode (`.env.production` local con la config pública) + `firebase deploy --only hosting:telar-tejido,functions:api` usando el **`firebase login`** del usuario (sin SA con permisos de deploy). El workflow `deploy.yml` queda listo para automatizar en CI cuando se configure un SA con rol de deploy + el secret `FIREBASE_SERVICE_ACCOUNT` (hoy el deploy se hace a mano; la SA `firebase-adminsdk` se usó solo para el seed).
+
+**Seguridad:** la clave SA se guardó por error en `functions/src/`; se **movió fuera del repo** (`C:\src\telar-sa.json`) y se añadió red de seguridad en `.gitignore` (`*-sa.json`, `*firebase-adminsdk*.json`, `serviceAccount*.json`). No llegó a git.
+
+**Deuda:** deploy automático en CI (requiere SA con permisos de deploy + secret) — opcional; hoy el deploy manual funciona. Recomendable rotar la SA si el demo se hace público con la clave compartida.

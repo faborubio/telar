@@ -46,3 +46,7 @@ ui-debug.log*
 .runtimeconfig.json
 # Env de prod: lo genera el workflow de deploy desde repo vars (config pública, no secreta).
 packages/app/.env.production
+# Claves de service account (NUNCA al repo; la llave maestra del Admin SDK).
+*-sa.json
+*firebase-adminsdk*.json
+**/serviceAccount*.json

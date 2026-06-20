@@ -103,6 +103,7 @@ telar/
 
 ## Enlaces
 
+- **App Tejido (en vivo):** https://telar-tejido.web.app — demo: `ada@telar.dev` / `telar123`.
 - **Repositorio:** https://github.com/faborubio/telar
 - **Storybook (vitrina del DS):** https://faborubio.github.io/telar/
 
@@ -115,7 +116,12 @@ telar/
 - **Endurecimiento (Fase 3):** E2E (Cypress + cypress-axe), regresión visual (Storybook test-runner: smoke + axe + diff de pixel determinista), observabilidad (errores + Web Vitals + versión embebida). El axe en navegador real destapó y corrigió contraste AA roto en tema oscuro.
 - **CI/CD en verde:** typecheck, lint, tests, build, size budgets, Lighthouse, E2E y regresión visual.
 
-**En curso — Fase 4 (productivización en GCP/Firebase):** Slice 1 cerrado — **backend real** (Cloud Functions REST + Firestore + Firebase Auth) con la app en **modo dual `mock | firebase`**, desarrollado local con el Emulator Suite. Siguiente: Slice 2 (Hosting + deploy). Ver roadmap en [SAD.md §12](SAD.md) y detalle por fase en [AUDIT.md](AUDIT.md).
+**En curso — Fase 4 (productivización en GCP/Firebase):**
+
+- **Slice 1** ✅ — **backend real** (Cloud Functions REST + Firestore + Firebase Auth) con la app en **modo dual `mock | firebase`**, desarrollado local con el Emulator Suite.
+- **Slice 2** ✅ — **desplegado en vivo**: app + backend en **https://telar-tejido.web.app** (Firebase Hosting + Functions + Firestore + Auth reales). Login `ada@telar.dev` / `telar123`.
+
+Ver roadmap en [SAD.md §12](SAD.md) y detalle por fase en [AUDIT.md](AUDIT.md).
 
 ## Autor
 
