@@ -136,8 +136,9 @@ jobs:
         run: pnpm tokens
 
       # El test-runner monta cada story en Chromium (Playwright): smoke + axe + pixel-diff.
+      # Versión pinada a la del test-runner (lockfile) para que el binario de Chromium coincida.
       - name: Install Playwright (chromium + deps de sistema)
-        run: pnpm -C packages/ds exec playwright install chromium --with-deps
+        run: pnpm dlx playwright@1.61.0 install chromium --with-deps
 
       - name: Build Storybook
         run: pnpm -C packages/ds build-storybook
