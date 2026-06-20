@@ -6,11 +6,17 @@ import { getFirestore } from 'firebase-admin/firestore'
 import { getAuth } from 'firebase-admin/auth'
 import { DEMO_PASSWORD, seedUsers } from './data'
 
-// Por defecto apunta a los emuladores locales (así `pnpm -C functions seed` funciona sin
-// configurar env). NUNCA siembra cloud real salvo que se pasen hosts/proyecto explícitos.
-process.env.FIRESTORE_EMULATOR_HOST ??= '127.0.0.1:8080'
-process.env.FIREBASE_AUTH_EMULATOR_HOST ??= '127.0.0.1:9099'
-process.env.GCLOUD_PROJECT ??= 'demo-telar'
+// Destino: PROD si hay credenciales de service account (GOOGLE_APPLICATION_CREDENTIALS) o
+// SEED_TARGET=prod; si no, los EMULADORES locales (así `pnpm -C functions seed` funciona sin
+// configurar nada). Evita sembrar cloud real por accidente.
+const useEmulator =
+  !process.env.GOOGLE_APPLICATION_CREDENTIALS && process.env.SEED_TARGET !== 'prod'
+
+if (useEmulator) {
+  process.env.FIRESTORE_EMULATOR_HOST ??= '127.0.0.1:8080'
+  process.env.FIREBASE_AUTH_EMULATOR_HOST ??= '127.0.0.1:9099'
+  process.env.GCLOUD_PROJECT ??= 'demo-telar'
+}
 
 initializeApp({ projectId: process.env.GCLOUD_PROJECT })
 

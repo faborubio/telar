@@ -7,9 +7,10 @@ name: Deploy (Firebase Hosting + Functions)
 # Config necesaria (una vez, en GitHub → Settings):
 #   Variables: FIREBASE_PROJECT_ID, FIREBASE_API_KEY, FIREBASE_AUTH_DOMAIN, FIREBASE_APP_ID
 #   Secret:    FIREBASE_SERVICE_ACCOUNT  (JSON de una service account con permisos de deploy)
+#
+# Disparo SOLO manual (workflow_dispatch): el proyecto Firebase es compartido (fabian-portafolio),
+# así que el deploy se lanza a propósito, nunca en cada push, para no pisar otros sitios.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency: deploy-${{ github.ref }}
@@ -57,9 +58,11 @@ jobs:
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > "$RUNNER_TEMP/sa.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa.json" >> "$GITHUB_ENV"
 
-      - name: Deploy Hosting + Functions
+      # Acotado: solo el sitio de Telar (hosting.site en firebase.json) y nuestra función
+      # `api`. NO toca otros sitios/functions del proyecto compartido (fabian-portafolio).
+      - name: Deploy Hosting (sitio telar-tejido) + Function api
         run: >
           pnpm dlx firebase-tools@13 deploy
-          --only hosting,functions
+          --only hosting:telar-tejido,functions:api
           --project ${{ vars.FIREBASE_PROJECT_ID }}
           --non-interactive
